@@ -1,0 +1,15 @@
+{
+    "servers": {
+        "pocketbase-server": {
+            "command": "node",
+            "args": [
+                "pocketbase-mcp/build/index.js"
+            ],
+            "env": {
+                "POCKETBASE_URL": "http://127.0.0.1:8090",
+                "POCKETBASE_ADMIN_EMAIL": "etouitou25.touitou@gmail.com",
+                "POCKETBASE_ADMIN_PASSWORD": "Pistache1993"
+            }
+        }
+    }
+}
