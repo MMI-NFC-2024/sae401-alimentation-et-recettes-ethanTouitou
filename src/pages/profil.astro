@@ -1,0 +1,532 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { getHomePageData } from '../lib/local-pocketbase';
+
+const recipeOptions = getHomePageData().recipes.map((recipe) => ({
+  id: recipe.id,
+  title: recipe.title,
+  slug: recipe.slug,
+  calories: recipe.calories,
+}));
+---
+
+<Layout
+  title="NutriGuide | Profil"
+  description="Votre tableau de bord nutritionnel personnel."
+>
+  <main class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+    <section class="mx-auto max-w-[1120px]">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 class="text-[2.7rem] font-semibold tracking-[-0.04em] text-[#314033]">
+            Mon profil
+          </h1>
+          <p class="mt-4 max-w-[760px] text-[16px] leading-8 text-[#6b7569]">
+            Suivez votre IMC, votre objectif calorique et les recettes consommees au fil de la journee.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a
+            href="/calculateur"
+            class="rounded-full border border-[#dddcd2] bg-white px-4 py-2 text-sm font-medium text-[#5e675d] transition hover:border-[#c8d3c4] hover:text-[#4f7557]"
+          >
+            Mettre a jour mon IMC
+          </a>
+          <button
+            id="logout-button"
+            class="rounded-full border border-[#dddcd2] bg-white px-4 py-2 text-sm font-medium text-[#5e675d] transition hover:border-[#c8d3c4] hover:text-[#4f7557]"
+          >
+            Se deconnecter
+          </button>
+        </div>
+      </div>
+
+      <div id="profile-status" class="mt-4 hidden rounded-[12px] border px-4 py-3 text-sm"></div>
+
+      <div class="mt-10 grid gap-6 xl:grid-cols-[320px_minmax(0,1fr)]">
+        <aside class="space-y-6">
+          <section class="rounded-[24px] border border-[#e4ddcf] bg-[linear-gradient(180deg,#eef4ea,#ffffff)] p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+            <div id="profile-avatar" class="flex h-24 w-24 items-center justify-center rounded-full bg-[#5d8765] text-[28px] font-semibold text-white">
+              N
+            </div>
+            <h2 id="profile-name" class="mt-5 text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">
+              Profil
+            </h2>
+            <p id="profile-email" class="mt-2 text-[15px] text-[#6b7569]"></p>
+
+            <div class="mt-6 space-y-3 text-sm text-[#6b7569]">
+              <div>
+                <div class="font-medium text-[#314033]">Compte</div>
+                <div id="profile-verified">Non verifie</div>
+              </div>
+              <div>
+                <div class="font-medium text-[#314033]">Membre depuis</div>
+                <div id="profile-created">-</div>
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-[24px] border border-[#e4ddcf] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+            <div class="text-sm font-medium text-[#6b7569]">IMC actuel</div>
+            <div id="profile-bmi" class="mt-2 text-[3rem] font-semibold leading-none text-[#4f7557]">--</div>
+            <div id="profile-bmi-category" class="mt-3 inline-flex rounded-full bg-[#eef2eb] px-3 py-1 text-sm font-medium text-[#4f7557]">
+              En attente
+            </div>
+            <div class="mt-5 border-t border-[#ece7db] pt-5 space-y-3 text-sm text-[#6b7569]">
+              <div>
+                <div class="font-medium text-[#314033]">Objectif actuel</div>
+                <div id="profile-goal">Non defini</div>
+              </div>
+              <div>
+                <div class="font-medium text-[#314033]">Activite</div>
+                <div id="profile-activity">Non definie</div>
+              </div>
+              <div>
+                <div class="font-medium text-[#314033]">Calories cibles / jour</div>
+                <div id="profile-target-calories">--</div>
+              </div>
+            </div>
+          </section>
+        </aside>
+
+        <div class="space-y-6">
+          <section class="rounded-[24px] border border-[#e4ddcf] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h2 class="text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">Compteur calories du jour</h2>
+                <p class="mt-2 text-[15px] leading-7 text-[#6b7569]">
+                  Ce compteur evolue selon les recettes que vous avez enregistrees aujourd hui.
+                </p>
+              </div>
+              <div class="rounded-full bg-[#eef2eb] px-4 py-2 text-sm font-medium text-[#556a59]">
+                <span id="today-recipe-count">0</span> recettes suivies
+              </div>
+            </div>
+
+            <div class="mt-6 grid gap-4 md:grid-cols-3">
+              <div class="rounded-[18px] bg-[#f7f3ec] p-5">
+                <div class="text-sm text-[#6b7569]">Calories cible</div>
+                <div id="daily-target" class="mt-2 text-[2rem] font-semibold leading-none text-[#314033]">--</div>
+              </div>
+              <div class="rounded-[18px] bg-[#f7f3ec] p-5">
+                <div class="text-sm text-[#6b7569]">Calories consommees</div>
+                <div id="daily-consumed" class="mt-2 text-[2rem] font-semibold leading-none text-[#4f7557]">0 kcal</div>
+              </div>
+              <div class="rounded-[18px] bg-[#f7f3ec] p-5">
+                <div class="text-sm text-[#6b7569]">Reste aujourd hui</div>
+                <div id="daily-remaining" class="mt-2 text-[2rem] font-semibold leading-none text-[#314033]">--</div>
+              </div>
+            </div>
+
+            <div class="mt-6">
+              <div class="mb-2 flex items-center justify-between text-sm text-[#6b7569]">
+                <span>Progression de la journee</span>
+                <span id="daily-progress-label">0%</span>
+              </div>
+              <div class="h-3 overflow-hidden rounded-full bg-[#ece7db]">
+                <div id="daily-progress-bar" class="h-full w-0 rounded-full bg-[#5d8765] transition-all duration-300"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-[24px] border border-[#e4ddcf] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+            <h2 class="text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">Ajouter un repas</h2>
+            <form id="meal-log-form" class="mt-6 grid gap-4 md:grid-cols-[minmax(0,1fr)_160px_180px]">
+              <label class="space-y-2">
+                <span class="text-sm font-medium text-[#314033]">Recette</span>
+                <select name="recipe" id="meal-recipe-select" class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]">
+                  {recipeOptions.map((recipe) => (
+                    <option value={recipe.id} data-calories={recipe.calories}>{recipe.title}</option>
+                  ))}
+                </select>
+              </label>
+
+              <label class="space-y-2">
+                <span class="text-sm font-medium text-[#314033]">Parts</span>
+                <input id="meal-servings-input" name="servings" type="number" min="0.5" step="0.5" value="1" class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]" />
+              </label>
+
+              <label class="space-y-2">
+                <span class="text-sm font-medium text-[#314033]">Date</span>
+                <input id="meal-date-input" name="consumed_on" type="date" class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]" />
+              </label>
+
+              <div class="md:col-span-3 flex flex-col gap-4 rounded-[18px] bg-[#f7f3ec] p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div class="text-sm text-[#6b7569]">Calories estimees pour ce repas</div>
+                  <div id="meal-preview-calories" class="mt-1 text-[2rem] font-semibold leading-none text-[#314033]">--</div>
+                </div>
+                <button class="rounded-[12px] bg-[#5d8765] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#4f7557]">
+                  Ajouter a ma journee
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section class="rounded-[24px] border border-[#e4ddcf] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+            <h2 class="text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">Suivi des recettes consommees</h2>
+            <div id="meal-log-list" class="mt-6 space-y-3"></div>
+          </section>
+
+          <section class="rounded-[24px] border border-[#e4ddcf] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+            <h2 class="text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">Mon compte</h2>
+            <form id="profile-form" class="mt-6 space-y-5">
+              <label class="block space-y-2">
+                <span class="text-sm font-medium text-[#314033]">Nom</span>
+                <input
+                  id="profile-name-input"
+                  type="text"
+                  name="name"
+                  class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]"
+                />
+              </label>
+
+              <label class="block space-y-2">
+                <span class="text-sm font-medium text-[#314033]">Avatar</span>
+                <input
+                  type="file"
+                  name="avatar"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition file:mr-4 file:rounded-full file:border-0 file:bg-[#eef2eb] file:px-3 file:py-2 file:text-sm file:font-medium file:text-[#4f7557]"
+                />
+              </label>
+
+              <label class="inline-flex items-center gap-3 text-sm text-[#314033]">
+                <input
+                  id="email-visibility-input"
+                  type="checkbox"
+                  name="emailVisibility"
+                  class="h-4 w-4 rounded border-[#cfd6c6] text-[#5d8765] focus:ring-[#5d8765]"
+                />
+                Rendre mon email visible
+              </label>
+
+              <button class="rounded-[12px] bg-[#5d8765] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#4f7557]">
+                Enregistrer mon profil
+              </button>
+            </form>
+          </section>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script
+    is:inline
+    data-profile-recipes
+    type="application/json"
+    set:html={JSON.stringify(recipeOptions)}
+  />
+
+  <script>
+    import {
+      PB_URL,
+      clearStoredAuth,
+      getActivityLabel,
+      getGoalLabel,
+      getStoredAuth,
+      getUserAvatarUrl,
+      getUserDisplayName,
+      parsePocketBaseError,
+      saveStoredAuth,
+    } from '../lib/pocketbase-browser';
+
+    const auth = getStoredAuth();
+    const recipes = JSON.parse(document.querySelector('[data-profile-recipes]')?.innerHTML || '[]');
+
+    const statusNode = document.querySelector('#profile-status');
+    const nameNode = document.querySelector('#profile-name');
+    const emailNode = document.querySelector('#profile-email');
+    const verifiedNode = document.querySelector('#profile-verified');
+    const createdNode = document.querySelector('#profile-created');
+    const avatarNode = document.querySelector('#profile-avatar');
+    const nameInput = document.querySelector('#profile-name-input');
+    const emailVisibilityInput = document.querySelector('#email-visibility-input');
+    const form = document.querySelector('#profile-form');
+    const logoutButton = document.querySelector('#logout-button');
+    const recipeSelect = document.querySelector('#meal-recipe-select');
+    const mealServingsInput = document.querySelector('#meal-servings-input');
+    const mealDateInput = document.querySelector('#meal-date-input');
+    const mealPreviewCalories = document.querySelector('#meal-preview-calories');
+    const mealLogForm = document.querySelector('#meal-log-form');
+    const mealLogList = document.querySelector('#meal-log-list');
+
+    const profileBmi = document.querySelector('#profile-bmi');
+    const profileBmiCategory = document.querySelector('#profile-bmi-category');
+    const profileGoal = document.querySelector('#profile-goal');
+    const profileActivity = document.querySelector('#profile-activity');
+    const profileTargetCalories = document.querySelector('#profile-target-calories');
+    const dailyTarget = document.querySelector('#daily-target');
+    const dailyConsumed = document.querySelector('#daily-consumed');
+    const dailyRemaining = document.querySelector('#daily-remaining');
+    const dailyProgressLabel = document.querySelector('#daily-progress-label');
+    const dailyProgressBar = document.querySelector('#daily-progress-bar');
+    const todayRecipeCount = document.querySelector('#today-recipe-count');
+
+    let currentUser = null;
+    let mealLogs = [];
+
+    const showStatus = (message, tone = 'success') => {
+      if (!statusNode) return;
+      statusNode.textContent = message;
+      statusNode.className = `mt-4 rounded-[12px] border px-4 py-3 text-sm ${tone === 'error' ? 'border-[#e4b6b1] bg-[#fff4f3] text-[#8a4b43]' : 'border-[#d2dfcd] bg-[#f5faf3] text-[#4f7557]'}`;
+      statusNode.classList.remove('hidden');
+    };
+
+    if (!auth?.token || !auth?.model?.id) {
+      window.location.href = '/connexion';
+    }
+
+    const getLocalDayKey = (date = new Date()) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const today = getLocalDayKey();
+
+    const toPocketBaseDate = (dayKey) => `${dayKey} 12:00:00.000Z`;
+
+    if (mealDateInput) {
+      mealDateInput.value = today;
+    }
+
+    const recipeById = new Map(recipes.map((recipe) => [recipe.id, recipe]));
+
+    const updateMealPreview = () => {
+      const recipe = recipeById.get(recipeSelect?.value || '');
+      const servings = Number(mealServingsInput?.value || 1);
+      const calories = recipe ? Math.round(recipe.calories * servings) : 0;
+      if (mealPreviewCalories) {
+        mealPreviewCalories.textContent = `${calories} kcal`;
+      }
+    };
+
+    const renderProfile = (model) => {
+      currentUser = model;
+      if (nameNode) nameNode.textContent = getUserDisplayName(model);
+      if (emailNode) emailNode.textContent = model.email || '';
+      if (verifiedNode) verifiedNode.textContent = model.verified ? 'Verifie' : 'Non verifie';
+      if (createdNode) createdNode.textContent = model.created ? new Date(model.created).toLocaleDateString('fr-FR') : '-';
+      if (nameInput) nameInput.value = model.name || '';
+      if (emailVisibilityInput) emailVisibilityInput.checked = Boolean(model.emailVisibility);
+      if (profileBmi) profileBmi.textContent = model.bmi ? `${model.bmi}` : '--';
+      if (profileBmiCategory) profileBmiCategory.textContent = model.bmi_category || 'En attente';
+      if (profileGoal) profileGoal.textContent = getGoalLabel(model.nutrition_goal);
+      if (profileActivity) profileActivity.textContent = getActivityLabel(model.activity_level);
+      if (profileTargetCalories) profileTargetCalories.textContent = model.target_calories ? `${model.target_calories} kcal/jour` : '--';
+      if (dailyTarget) dailyTarget.textContent = model.target_calories ? `${model.target_calories} kcal` : '--';
+
+      if (avatarNode) {
+        const avatarUrl = getUserAvatarUrl(model);
+        avatarNode.innerHTML = avatarUrl
+          ? `<img src="${avatarUrl}" alt="${getUserDisplayName(model)}" class="h-full w-full rounded-full object-cover" />`
+          : getUserDisplayName(model).slice(0, 1).toUpperCase();
+      }
+    };
+
+    const renderMealLogs = () => {
+      const todayLogs = mealLogs.filter((log) => String(log.consumed_on || '').slice(0, 10) === today);
+      const target = Number(currentUser?.target_calories || 0);
+      const consumed = todayLogs.reduce((sum, log) => sum + Number(log.total_calories || 0), 0);
+      const remaining = target > 0 ? target - consumed : 0;
+      const progress = target > 0 ? Math.min((consumed / target) * 100, 100) : 0;
+
+      if (dailyConsumed) dailyConsumed.textContent = `${Math.round(consumed)} kcal`;
+      if (dailyRemaining) dailyRemaining.textContent = target > 0 ? `${Math.round(remaining)} kcal` : '--';
+      if (dailyProgressLabel) dailyProgressLabel.textContent = `${Math.round(progress)}%`;
+      if (dailyProgressBar) dailyProgressBar.style.width = `${progress}%`;
+      if (todayRecipeCount) todayRecipeCount.textContent = `${todayLogs.length}`;
+
+      if (!mealLogList) return;
+
+      if (mealLogs.length === 0) {
+        mealLogList.innerHTML = `
+          <article class="rounded-[18px] border border-[#e4ddcf] bg-[#f7f3ec] p-5 text-[15px] leading-7 text-[#6b7569]">
+            Aucune recette enregistree pour le moment. Ajoutez votre premier repas ci-dessus.
+          </article>
+        `;
+        return;
+      }
+
+      mealLogList.innerHTML = mealLogs
+        .map((log) => {
+          const recipe = recipeById.get(log.recipe) || log.expand?.recipe;
+          const consumedOn = String(log.consumed_on || '').slice(0, 10);
+          return `
+            <article class="flex flex-col gap-4 rounded-[18px] border border-[#e4ddcf] bg-[#fcfcfa] p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div class="text-[18px] font-medium text-[#314033]">${recipe?.title || 'Recette'}</div>
+                <div class="mt-1 text-sm text-[#6b7569]">${log.servings} part(s) • ${Math.round(log.total_calories)} kcal • ${consumedOn}</div>
+              </div>
+              <button data-delete-log="${log.id}" class="rounded-full border border-[#e2d6d2] px-4 py-2 text-sm font-medium text-[#8a4b43] transition hover:border-[#d6b7b0] hover:bg-[#fff4f3]">
+                Supprimer
+              </button>
+            </article>
+          `;
+        })
+        .join('');
+
+      mealLogList.querySelectorAll('[data-delete-log]').forEach((button) => {
+        button.addEventListener('click', async () => {
+          try {
+            const response = await fetch(`${PB_URL}/api/collections/meal_logs/records/${button.dataset.deleteLog}`, {
+              method: 'DELETE',
+              headers: { Authorization: auth.token },
+            });
+
+            if (!response.ok) {
+              throw new Error('Suppression impossible.');
+            }
+
+            await loadMealLogs();
+            showStatus('Repas supprime du suivi.');
+          } catch (error) {
+            showStatus(error instanceof Error ? error.message : 'Suppression impossible.', 'error');
+          }
+        });
+      });
+    };
+
+    const loadMealLogs = async () => {
+      const response = await fetch(`${PB_URL}/api/collections/meal_logs/records?sort=-consumed_on&perPage=200&expand=recipe`, {
+        headers: { Authorization: auth.token },
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(parsePocketBaseError(payload));
+      }
+
+      mealLogs = (payload.items || []).sort((left, right) => {
+        const leftDate = new Date(left.consumed_on || 0).getTime();
+        const rightDate = new Date(right.consumed_on || 0).getTime();
+
+        if (rightDate !== leftDate) {
+          return rightDate - leftDate;
+        }
+
+        return String(right.id || '').localeCompare(String(left.id || ''));
+      });
+      renderMealLogs();
+    };
+
+    const loadProfile = async () => {
+      const response = await fetch(`${PB_URL}/api/collections/users/records/${auth.model.id}`, {
+        headers: { Authorization: auth.token },
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(parsePocketBaseError(payload));
+      }
+
+      saveStoredAuth({ token: auth.token, model: payload });
+      renderProfile(payload);
+    };
+
+    Promise.all([loadProfile(), loadMealLogs(), Promise.resolve(updateMealPreview())]).catch((error) => {
+      showStatus(error instanceof Error ? error.message : 'Chargement du profil impossible.', 'error');
+    });
+
+    recipeSelect?.addEventListener('change', updateMealPreview);
+    mealServingsInput?.addEventListener('input', updateMealPreview);
+
+    mealLogForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      try {
+        const recipe = recipeById.get(recipeSelect?.value || '');
+        const servings = Number(mealServingsInput?.value || 1);
+        const dateValue = mealDateInput?.value || today;
+
+        if (!recipe) {
+          throw new Error('Selectionnez une recette.');
+        }
+
+        if (!Number.isFinite(servings) || servings <= 0) {
+          throw new Error('Le nombre de parts doit etre superieur a 0.');
+        }
+
+        const totalCalories = Math.round(Number(recipe.calories || 0) * servings);
+        const consumedOn = toPocketBaseDate(dateValue);
+
+        const response = await fetch(`${PB_URL}/api/collections/meal_logs/records`, {
+          method: 'POST',
+          headers: {
+            Authorization: auth.token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            user: auth.model.id,
+            recipe: recipe.id,
+            servings,
+            consumed_on: consumedOn,
+            total_calories: totalCalories,
+          }),
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(parsePocketBaseError(payload));
+        }
+
+        mealLogs = [payload, ...mealLogs];
+        renderMealLogs();
+        mealServingsInput.value = '1';
+        mealDateInput.value = today;
+        updateMealPreview();
+
+        try {
+          await loadMealLogs();
+        } catch {
+          // Keep the optimistic UI state if the refresh fails.
+        }
+
+        showStatus('Repas ajoute a votre suivi du jour.');
+      } catch (error) {
+        showStatus(error instanceof Error ? error.message : 'Impossible d ajouter ce repas.', 'error');
+      }
+    });
+
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      try {
+        const formData = new FormData(form);
+        formData.set('name', nameInput?.value || '');
+        formData.set('emailVisibility', emailVisibilityInput?.checked ? 'true' : 'false');
+
+        const avatarFile = formData.get('avatar');
+        if (!(avatarFile instanceof File) || avatarFile.size === 0) {
+          formData.delete('avatar');
+        }
+
+        const response = await fetch(`${PB_URL}/api/collections/users/records/${auth.model.id}`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: auth.token,
+          },
+          body: formData,
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(parsePocketBaseError(payload));
+        }
+
+        saveStoredAuth({ token: auth.token, model: payload });
+        renderProfile(payload);
+        showStatus('Profil mis a jour avec succes.');
+      } catch (error) {
+        showStatus(error instanceof Error ? error.message : 'Mise a jour impossible.', 'error');
+      }
+    });
+
+    logoutButton?.addEventListener('click', () => {
+      clearStoredAuth();
+      window.location.href = '/connexion';
+    });
+  </script>
+</Layout>

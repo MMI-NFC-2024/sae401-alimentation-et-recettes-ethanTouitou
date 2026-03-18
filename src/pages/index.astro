@@ -1,11 +1,329 @@
 ---
-import Welcome from '../components/Welcome.astro';
+import DietCard from '../components/DietCard.astro';
+import RecipeCard from '../components/RecipeCard.astro';
 import Layout from '../layouts/Layout.astro';
+import { getHomePageData } from '../lib/local-pocketbase';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const data = getHomePageData();
+const featuredRecipes = data.recipes.slice(0, 3);
+const featuredFoods = data.foods.slice(0, 4);
+const featuredInsights = data.insights.slice(0, 3);
+const hasDietTypes = data.dietTypes.length > 0;
+const hasNutritionGoals = data.nutritionGoals.length > 0;
+const hasRecipes = featuredRecipes.length > 0;
+const hasFoods = featuredFoods.length > 0;
+const hasSponsored = Boolean(data.sponsoredLink);
+const goalIcons = {
+	'perte-de-poids': 'PP',
+	'prise-de-masse': 'MM',
+	'alimentation-equilibree': 'EQ',
+	'riche-en-proteines': 'PR',
+};
 ---
 
-<Layout>
-	<Welcome />
+<Layout
+	title="NutriGuide | Aliments et recettes depuis votre base PocketBase"
+	description="Homepage nutrition connectee a votre base PocketBase locale avec vos aliments, recettes et reperes nutritionnels."
+	currentPath="/"
+>
+	<main>
+			<section class="w-full bg-[radial-gradient(circle_at_top_right,rgba(242,199,136,0.28),transparent_24%),linear-gradient(180deg,#d2decf_0%,#eef1e7_54%,#f7f3ec_100%)] py-14 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] sm:py-20">
+				<div class="mx-auto max-w-[1240px] px-4 sm:px-6">
+					<div class="mx-auto max-w-[900px] text-center">
+						<h1 class="text-[2.35rem] font-semibold leading-[0.98] tracking-[-0.05em] text-[#314033] sm:text-[3.6rem] lg:text-[4.3rem]">
+							Trouvez les aliments et recettes adaptes a vos objectifs nutritionnels
+						</h1>
+						<p class="mx-auto mt-5 max-w-[720px] text-[15px] leading-7 text-[#687267] sm:text-[17px]">
+							Naviguez dans votre base PocketBase pour retrouver vos aliments, vos recettes et les informations nutritionnelles deja enregistrees.
+						</p>
+
+						<label
+							id="recherche"
+							class="mx-auto mt-10 flex w-full max-w-[760px] items-center gap-3 rounded-[18px] border border-white/80 bg-white/95 px-5 py-4 shadow-[0_22px_34px_rgba(100,113,85,0.11)]"
+						>
+							<svg class="h-[18px] w-[18px] text-[#7a8378]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<circle cx="11" cy="11" r="6.5"></circle>
+								<path d="M16 16L21 21"></path>
+							</svg>
+							<input
+								type="search"
+								id="search-input"
+								placeholder="Rechercher un aliment, une recette..."
+								autocomplete="off"
+								class="w-full border-0 bg-transparent text-[15px] text-[#314033] outline-none placeholder:text-[#98a096]"
+							/>
+						</label>
+					</div>
+				</div>
+			</section>
+
+			<section class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+				<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+					<div class="rounded-[20px] border border-white/80 bg-white/70 px-5 py-4">
+						<div class="text-[28px] font-semibold tracking-[-0.04em] text-[#314033]">{data.stats.foods}</div>
+						<div class="text-sm text-[#6b7569]">aliments dans la base</div>
+					</div>
+					<div class="rounded-[20px] border border-white/80 bg-white/70 px-5 py-4">
+						<div class="text-[28px] font-semibold tracking-[-0.04em] text-[#314033]">{data.stats.recipes}</div>
+						<div class="text-sm text-[#6b7569]">recettes disponibles</div>
+					</div>
+					<div class="rounded-[20px] border border-white/80 bg-white/70 px-5 py-4">
+						<div class="text-[28px] font-semibold tracking-[-0.04em] text-[#314033]">{data.stats.nutritionGoals}</div>
+						<div class="text-sm text-[#6b7569]">objectifs configures</div>
+					</div>
+					<div class="rounded-[20px] border border-white/80 bg-white/70 px-5 py-4">
+						<div class="text-[28px] font-semibold tracking-[-0.04em] text-[#314033]">{data.stats.dietTypes}</div>
+						<div class="text-sm text-[#6b7569]">regimes enregistres</div>
+					</div>
+				</div>
+			</section>
+
+			<section id="objectifs" class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+				<div class="mb-6 flex flex-col gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between">
+					<div>
+						<h2 class="text-[2rem] font-semibold leading-none tracking-[-0.03em] text-[#314033] sm:text-[2.45rem]">Par objectifs nutritionnels</h2>
+						<p class="max-w-[620px] text-sm leading-6 text-[#6b7569] sm:text-[15px]">
+							{data.nutritionGoals.length > 0
+								? 'Objectifs recuperes depuis la collection nutrition_goals.'
+								: 'Collection nutrition_goals vide: la page genere un apercu a partir des donnees deja presentes.'}
+						</p>
+					</div>
+				</div>
+
+				<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+					{hasNutritionGoals ? (
+						data.nutritionGoals.slice(0, 4).map((goal, index) => (
+							<DietCard
+								name={goal.name}
+								description={goal.description || 'Objectif disponible dans votre base.'}
+								icon={goalIcons[goal.slug] || goal.name.slice(0, 2).toUpperCase()}
+								href={`/recettes/objectif/${goal.slug}`}
+								accent={index % 2 === 0 ? 'green' : 'sand'}
+								tone="gradient"
+							/>
+						))
+					) : (
+						data.highlights.slice(0, 4).map((highlight) => (
+							<DietCard
+								name={highlight.title}
+								description={highlight.description}
+								icon={highlight.glyph}
+								href="/recettes"
+								accent={highlight.accent}
+								tone="gradient"
+							/>
+						))
+					)}
+				</div>
+			</section>
+
+			<section id="regimes" class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-12">
+				<div class="rounded-[28px] bg-[#f4f2ed] px-5 py-8 sm:px-8">
+					<div class="mb-6 flex flex-col gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between">
+						<div>
+							<h2 class="text-[2rem] font-semibold leading-none tracking-[-0.03em] text-[#314033] sm:text-[2.45rem]">Par regimes alimentaires</h2>
+							<p class="max-w-[620px] text-sm leading-6 text-[#6b7569] sm:text-[15px]">
+								{hasDietTypes
+									? 'Les regimes affiches viennent de la collection diet_types.'
+									: 'Aucun regime n est encore present dans diet_types, la section se remplira automatiquement des que vous les ajouterez.'}
+							</p>
+						</div>
+						<a class="text-sm font-medium text-[#4f7557]" href="/regimes">Voir tous les regimes</a>
+					</div>
+
+					{hasDietTypes ? (
+						<div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+							{data.dietTypes.slice(0, 4).map((dietType, index) => (
+								<DietCard
+								name={dietType.name}
+								description={dietType.description || 'Regime disponible dans votre base.'}
+								icon={dietType.icon || dietType.name.slice(0, 2).toUpperCase()}
+								href={`/regimes/${dietType.slug}`}
+								accent={index % 2 === 0 ? 'green' : 'sand'}
+									tone="gradient"
+								/>
+							))}
+						</div>
+					) : (
+						<article class="flex flex-col gap-4 rounded-[22px] border border-[#e6dfd3] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)] sm:flex-row sm:items-center">
+							<div class="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#5d8765] text-[11px] font-bold tracking-[0.14em] text-white sm:mb-0">DB</div>
+							<div>
+								<h3 class="text-[19px] font-medium tracking-[-0.02em] text-[#314033]">Collection a enrichir</h3>
+								<p class="mt-2 max-w-[700px] text-[14px] leading-6 text-[#6b7569]">
+									La homepage est deja branchee sur `diet_types`. Des que vous ajoutez vos regimes dans PocketBase, cette zone affichera automatiquement les cartes correspondantes.
+								</p>
+							</div>
+						</article>
+					)}
+				</div>
+			</section>
+
+			<section id="recettes" class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+					<div class="mb-6 flex flex-col gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between">
+						<div>
+							<h2 class="text-[2rem] font-semibold leading-none tracking-[-0.03em] text-[#314033] sm:text-[2.45rem]">Recettes recommandees</h2>
+							<p class="max-w-[620px] text-sm leading-6 text-[#6b7569] sm:text-[15px]">Cartes alimentees par la collection `recipes` avec les images PocketBase locales.</p>
+						</div>
+						<a class="text-sm font-medium text-[#4f7557]" href="/recettes">Voir tout</a>
+					</div>
+
+				{hasRecipes ? (
+					<div class="grid gap-4 lg:grid-cols-3">
+						{featuredRecipes.map((recipe) => (
+							<div
+								class="search-card"
+								data-search-card
+								data-search-text={`${recipe.title} ${recipe.summary} ${recipe.tags.join(' ')}`}
+							>
+								<RecipeCard {...recipe} href={`/recettes/${recipe.slug}`} />
+							</div>
+						))}
+					</div>
+				) : (
+					<article class="rounded-[22px] border border-[#e6dfd3] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+						<h3 class="text-[19px] font-medium tracking-[-0.02em] text-[#314033]">Aucune recette trouvee</h3>
+						<p class="mt-2 text-[14px] leading-6 text-[#6b7569]">Ajoutez des enregistrements dans `recipes` pour alimenter cette section.</p>
+					</article>
+				)}
+			</section>
+
+			<section id="aliments" class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+				<div class="mb-6 flex flex-col gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between">
+					<div>
+						<h2 class="text-[2rem] font-semibold leading-none tracking-[-0.03em] text-[#314033] sm:text-[2.45rem]">Aliments a decouvrir</h2>
+						<p class="max-w-[620px] text-sm leading-6 text-[#6b7569] sm:text-[15px]">Fiches issues de `foods` avec vos valeurs nutritionnelles et vos images locales.</p>
+					</div>
+					<a class="text-sm font-medium text-[#4f7557]" href="/aliments">Voir tout</a>
+				</div>
+
+				{hasFoods ? (
+					<div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+						{featuredFoods.map((food) => (
+							<a
+								href={`/aliments/${food.slug}`}
+								class="search-card overflow-hidden rounded-[22px] border border-[#e6dfd3] bg-white shadow-[0_18px_36px_rgba(76,82,58,0.06)] transition duration-200 hover:-translate-y-1"
+								data-search-card
+								data-search-text={`${food.name} ${food.summary} ${food.tags.join(' ')}`}
+							>
+								<div class="aspect-[1.05/1] bg-[linear-gradient(135deg,#d7dfd3,#edf0e6)]">
+									{food.imageUrl ? (
+										<img class="h-full w-full object-cover" src={food.imageUrl} alt={food.name} loading="lazy" />
+									) : (
+										<div class="flex h-full w-full items-center justify-center text-3xl font-bold text-[#55755b]">
+											{food.name.slice(0, 2).toUpperCase()}
+										</div>
+									)}
+								</div>
+								<div class="space-y-3 p-4">
+									<h3 class="text-[21px] font-medium tracking-[-0.03em] text-[#314033]">{food.name}</h3>
+									<p class="text-[14px] leading-6 text-[#6b7569]">{food.summary}</p>
+									<div class="grid grid-cols-3 gap-3 text-[11px] text-[#7b8479]">
+										<div class="space-y-1">
+											<div class="text-[15px] font-semibold text-[#314033]">{food.protein} g</div>
+											<div>Proteines</div>
+										</div>
+										<div class="space-y-1">
+											<div class="text-[15px] font-semibold text-[#314033]">{food.carbs} g</div>
+											<div>Glucides</div>
+										</div>
+										<div class="space-y-1">
+											<div class="text-[15px] font-semibold text-[#314033]">{food.calories}</div>
+											<div>kcal</div>
+										</div>
+									</div>
+									{food.tags.length > 0 && (
+										<div class="flex flex-wrap gap-2">
+											{food.tags.map((tag) => (
+												<span class="rounded-full bg-[#eef2eb] px-3 py-1 text-[11px] font-medium text-[#556a59]">{tag}</span>
+											))}
+										</div>
+									)}
+								</div>
+							</a>
+						))}
+					</div>
+				) : (
+					<article class="rounded-[22px] border border-[#e6dfd3] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+						<h3 class="text-[19px] font-medium tracking-[-0.02em] text-[#314033]">Aucun aliment trouve</h3>
+						<p class="mt-2 text-[14px] leading-6 text-[#6b7569]">Ajoutez des fiches dans `foods` pour peupler cette zone automatiquement.</p>
+					</article>
+				)}
+			</section>
+
+			<section id="conseils" class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+				<div class="mb-6 flex flex-col gap-3 sm:mb-7 sm:flex-row sm:items-end sm:justify-between">
+					<div>
+						<h2 class="text-[2rem] font-semibold leading-none tracking-[-0.03em] text-[#314033] sm:text-[2.45rem]">Conseils nutrition</h2>
+						<p class="max-w-[620px] text-sm leading-6 text-[#6b7569] sm:text-[15px]">
+							{data.articles.length > 0
+								? 'Les cartes viennent directement de la collection articles.'
+								: 'En absence d articles, la page genere des reperes a partir de vos donnees actuelles.'}
+						</p>
+					</div>
+					<span class="text-sm font-medium text-[#4f7557]">Voir tout</span>
+				</div>
+
+				<div class="grid gap-4 lg:grid-cols-3">
+					{featuredInsights.map((insight) => (
+						<article class="rounded-[22px] border border-[#e6dfd3] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+							<div class="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-[12px] bg-[#edf2ea] text-[11px] font-bold tracking-[0.14em] text-[#58725d]">
+								{insight.glyph}
+							</div>
+							<h3 class="text-[21px] font-medium tracking-[-0.03em] text-[#314033]">{insight.title}</h3>
+							<p class="mt-2 text-[14px] leading-6 text-[#6b7569]">{insight.description}</p>
+						</article>
+					))}
+				</div>
+
+					{hasSponsored && (
+						<article class="mt-6 rounded-[22px] border border-[#eddac7] bg-[linear-gradient(135deg,rgba(255,247,238,0.98),rgba(255,255,255,0.92))] p-6 shadow-[0_18px_36px_rgba(76,82,58,0.04)]">
+							<p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a88a6a]">Sponsorise</p>
+							<h3 class="mt-3 text-[22px] font-medium tracking-[-0.03em] text-[#314033]">
+								{data.sponsoredLink?.title || 'Lien partenaire'}
+							</h3>
+							<div class="mt-3 flex flex-wrap gap-2">
+								{data.sponsoredLink?.partner_name && (
+									<span class="rounded-full bg-white/80 px-3 py-1 text-[11px] font-medium text-[#7a6a59]">
+										{data.sponsoredLink.partner_name}
+									</span>
+								)}
+								{data.sponsoredLink?.type && (
+									<span class="rounded-full bg-white/80 px-3 py-1 text-[11px] font-medium capitalize text-[#7a6a59]">
+										{data.sponsoredLink.type}
+									</span>
+								)}
+							</div>
+							<p class="mt-2 max-w-[760px] text-[14px] leading-6 text-[#6b7569]">
+								Offre active reliee a votre base PocketBase et affichee automatiquement sur l accueil.
+							</p>
+							{data.sponsoredLink?.url && (
+								<a
+								class="mt-4 inline-flex text-sm font-semibold text-[#cf7c2f] transition hover:text-[#b86922]"
+								href={data.sponsoredLink.url}
+								target="_blank"
+								rel="noreferrer"
+							>
+								En savoir plus
+							</a>
+						)}
+					</article>
+				)}
+			</section>
+	</main>
+
+	<script is:inline>
+		const searchInput = document.querySelector('#search-input');
+		const cards = Array.from(document.querySelectorAll('[data-search-card]'));
+
+		if (searchInput && cards.length > 0) {
+			searchInput.addEventListener('input', (event) => {
+				const query = event.currentTarget.value.trim().toLowerCase();
+
+				cards.forEach((card) => {
+					const haystack = card.dataset.searchText?.toLowerCase() || '';
+					card.classList.toggle('hidden', query.length > 0 && !haystack.includes(query));
+				});
+			});
+		}
+	</script>
 </Layout>

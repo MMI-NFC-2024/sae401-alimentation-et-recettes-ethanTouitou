@@ -1,0 +1,335 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="NutriGuide | Calculateur IMC"
+  description="Calculez votre IMC et vos besoins caloriques journaliers selon votre objectif."
+  currentPath="/calculateur"
+>
+  <main class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+    <section class="text-center">
+      <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#eef2eb] text-[28px] text-[#5d8765]">
+        ⌗
+      </div>
+      <h1 class="mt-6 text-[2.7rem] font-semibold tracking-[-0.04em] text-[#314033]">
+        Calculateur IMC et calories journalieres
+      </h1>
+      <p class="mx-auto mt-4 max-w-[760px] text-[16px] leading-8 text-[#6b7569]">
+        Renseignez vos informations pour estimer votre IMC et votre apport calorique quotidien selon votre objectif.
+      </p>
+    </section>
+
+    <div id="calculator-status" class="mx-auto mt-6 hidden max-w-[1120px] rounded-[12px] border px-4 py-3 text-sm"></div>
+
+    <section class="mx-auto mt-10 grid max-w-[1120px] gap-6 lg:grid-cols-[1fr_1fr]">
+      <div class="space-y-6">
+        <section class="rounded-[24px] border border-[#e4ddcf] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+          <h2 class="text-[1.9rem] font-semibold tracking-[-0.03em] text-[#314033]">Vos informations</h2>
+
+          <form id="calculator-form" class="mt-6 space-y-6">
+            <div>
+              <div class="mb-3 text-sm font-medium text-[#314033]">Sexe</div>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <button type="button" data-sex-button data-value="homme" class="rounded-[14px] border border-[#d8ddcf] px-4 py-5 text-center text-[18px] text-[#314033] transition hover:border-[#8aac90]">
+                  Homme
+                </button>
+                <button type="button" data-sex-button data-value="femme" class="rounded-[14px] border border-[#d8ddcf] px-4 py-5 text-center text-[18px] text-[#314033] transition hover:border-[#8aac90]">
+                  Femme
+                </button>
+              </div>
+              <input id="sex-input" type="hidden" name="sex" value="homme" />
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-3">
+              <label class="space-y-2">
+                <span class="text-sm font-medium text-[#314033]">Age</span>
+                <input name="age" type="number" min="10" max="99" required class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]" placeholder="25" />
+              </label>
+              <label class="space-y-2">
+                <span class="text-sm font-medium text-[#314033]">Taille</span>
+                <input name="height_cm" type="number" min="100" max="250" required class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]" placeholder="175" />
+              </label>
+              <label class="space-y-2">
+                <span class="text-sm font-medium text-[#314033]">Poids</span>
+                <input name="weight_kg" type="number" min="30" max="300" step="0.1" required class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]" placeholder="70" />
+              </label>
+            </div>
+
+            <label class="block space-y-2">
+              <span class="text-sm font-medium text-[#314033]">Niveau d'activite physique</span>
+              <select name="activity_level" class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]">
+                <option value="sedentaire">Sedentaire</option>
+                <option value="leger">Leger</option>
+                <option value="modere" selected>Modere</option>
+                <option value="eleve">Eleve</option>
+                <option value="tres-eleve">Tres eleve</option>
+              </select>
+            </label>
+
+            <div>
+              <div class="mb-3 text-sm font-medium text-[#314033]">Objectif nutritionnel</div>
+              <div class="grid gap-3 sm:grid-cols-3">
+                <button type="button" data-goal-button data-value="perte-de-poids" class="rounded-[14px] border border-[#d8ddcf] px-4 py-5 text-center text-[18px] text-[#314033] transition hover:border-[#8aac90]">
+                  Perte de poids
+                </button>
+                <button type="button" data-goal-button data-value="maintien" class="rounded-[14px] border border-[#d8ddcf] px-4 py-5 text-center text-[18px] text-[#314033] transition hover:border-[#8aac90]">
+                  Maintien
+                </button>
+                <button type="button" data-goal-button data-value="prise-de-masse" class="rounded-[14px] border border-[#d8ddcf] px-4 py-5 text-center text-[18px] text-[#314033] transition hover:border-[#8aac90]">
+                  Prise de masse
+                </button>
+              </div>
+              <input id="goal-input" type="hidden" name="nutrition_goal" value="maintien" />
+            </div>
+
+            <button class="w-full rounded-[14px] bg-[#5d8765] px-4 py-4 text-base font-semibold text-white transition hover:bg-[#4f7557]">
+              Calculer
+            </button>
+          </form>
+        </section>
+
+        <section class="rounded-[20px] border border-[#e4ddcf] bg-[#f7f3ec] p-5 text-[15px] leading-8 text-[#6b7569]">
+          <div class="font-semibold text-[#314033]">Information importante</div>
+          <p class="mt-2">
+            Ces valeurs sont fournies a titre indicatif et peuvent varier selon votre metabolisme et votre situation personnelle.
+            Elles ne remplacent pas l'avis d'un professionnel de sante ou de nutrition.
+          </p>
+        </section>
+      </div>
+
+      <div class="space-y-6">
+        <section class="rounded-[24px] border border-[#e4ddcf] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+          <h2 class="text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">Indice de Masse Corporelle (IMC)</h2>
+          <div id="bmi-value" class="mt-6 text-center text-[4rem] font-semibold leading-none text-[#4f7557]">--</div>
+          <div id="bmi-category" class="mx-auto mt-4 inline-flex rounded-full bg-[#fff4eb] px-4 py-2 text-sm font-medium text-[#d26d1f]">En attente</div>
+          <div class="mt-6 h-3 overflow-hidden rounded-full bg-[linear-gradient(90deg,#3b82f6,#eab308,#f97316,#ef4444)]"></div>
+          <div class="mt-4 grid grid-cols-4 text-center text-xs text-[#7a8177]">
+            <span>&lt;18.5</span>
+            <span>18.5-25</span>
+            <span>25-30</span>
+            <span>&gt;30</span>
+          </div>
+          <p class="mt-6 border-t border-[#ece7db] pt-6 text-[15px] leading-8 text-[#6b7569]">
+            L'IMC est un indicateur simple du rapport entre votre poids et votre taille. Un IMC entre 18.5 et 25 est generalement considere comme sain pour la plupart des adultes.
+          </p>
+        </section>
+
+        <section class="rounded-[24px] border border-[#e4ddcf] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+          <h2 class="text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">Besoins caloriques journaliers</h2>
+          <div class="mt-6 space-y-4">
+            <div class="rounded-[18px] bg-[#f7f3ec] p-5">
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-sm text-[#6b7569]">Calories de maintien</div>
+                <span class="rounded-full bg-[#e9efe5] px-3 py-1 text-xs font-medium text-[#5d8765]">Base</span>
+              </div>
+              <div id="maintenance-calories" class="mt-2 text-[2.3rem] font-semibold leading-none text-[#314033]">--</div>
+              <div class="mt-2 text-sm text-[#6b7569]">Pour maintenir votre poids actuel</div>
+            </div>
+
+            <div class="rounded-[18px] border border-[#d6e4d3] bg-[#f7fbf6] p-5">
+              <div class="flex items-center justify-between gap-3">
+                <div class="text-sm text-[#6b7569]">Objectif calorique</div>
+                <span id="goal-badge" class="rounded-full bg-[#5d8765] px-3 py-1 text-xs font-medium text-white">Objectif</span>
+              </div>
+              <div id="target-calories" class="mt-2 text-[2.3rem] font-semibold leading-none text-[#4f7557]">--</div>
+              <div id="goal-description" class="mt-2 text-sm text-[#6b7569]">Selon votre objectif</div>
+            </div>
+          </div>
+
+          <div id="delta-calories" class="mt-4 text-center text-sm text-[#6b7569]">--</div>
+
+          <p class="mt-6 border-t border-[#ece7db] pt-6 text-[15px] leading-8 text-[#6b7569]">
+            Ces estimations sont basees sur la formule de Mifflin-St Jeor et votre niveau d'activite. Ajustez progressivement selon vos resultats et votre ressenti.
+          </p>
+        </section>
+
+        <section class="rounded-[24px] border border-[#e4ddcf] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+          <h2 class="text-[1.6rem] font-semibold tracking-[-0.03em] text-[#314033]">Conseils pratiques</h2>
+          <ul class="mt-4 space-y-3 text-[15px] leading-8 text-[#6b7569]">
+            <li>Privilegiez une approche progressive et durable.</li>
+            <li>Ecoutez votre corps et ajustez selon vos sensations.</li>
+            <li>La qualite des aliments est aussi importante que la quantite.</li>
+            <li>Consultez un professionnel pour un suivi personnalise.</li>
+          </ul>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    import {
+      calculateCaloriePlan,
+      getBmiCategory,
+      getGoalLabel,
+      getStoredAuth,
+      parsePocketBaseError,
+      PB_URL,
+      saveStoredAuth,
+    } from '../lib/pocketbase-browser';
+
+    const auth = getStoredAuth();
+    const form = document.querySelector('#calculator-form');
+    const statusNode = document.querySelector('#calculator-status');
+    const sexButtons = Array.from(document.querySelectorAll('[data-sex-button]'));
+    const goalButtons = Array.from(document.querySelectorAll('[data-goal-button]'));
+    const sexInput = document.querySelector('#sex-input');
+    const goalInput = document.querySelector('#goal-input');
+
+    const bmiValue = document.querySelector('#bmi-value');
+    const bmiCategory = document.querySelector('#bmi-category');
+    const maintenanceCalories = document.querySelector('#maintenance-calories');
+    const targetCalories = document.querySelector('#target-calories');
+    const deltaCalories = document.querySelector('#delta-calories');
+    const goalBadge = document.querySelector('#goal-badge');
+    const goalDescription = document.querySelector('#goal-description');
+
+    const showStatus = (message, tone = 'success') => {
+      if (!statusNode) return;
+      statusNode.textContent = message;
+      statusNode.className = `mx-auto mt-6 max-w-[1120px] rounded-[12px] border px-4 py-3 text-sm ${tone === 'error' ? 'border-[#e4b6b1] bg-[#fff4f3] text-[#8a4b43]' : 'border-[#d2dfcd] bg-[#f5faf3] text-[#4f7557]'}`;
+      statusNode.classList.remove('hidden');
+    };
+
+    const syncToggleButtons = (buttons, activeValue) => {
+      buttons.forEach((button) => {
+        const isActive = button.dataset.value === activeValue;
+        button.className = `rounded-[14px] border px-4 py-5 text-center text-[18px] transition ${isActive ? 'border-[#5d8765] bg-[#f4faf2] font-medium text-[#314033]' : 'border-[#d8ddcf] text-[#314033] hover:border-[#8aac90]'}`;
+      });
+    };
+
+    syncToggleButtons(sexButtons, sexInput?.value || 'homme');
+    syncToggleButtons(goalButtons, goalInput?.value || 'maintien');
+
+    sexButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        if (sexInput) sexInput.value = button.dataset.value || 'homme';
+        syncToggleButtons(sexButtons, sexInput?.value || 'homme');
+      });
+    });
+
+    goalButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        if (goalInput) goalInput.value = button.dataset.value || 'maintien';
+        syncToggleButtons(goalButtons, goalInput?.value || 'maintien');
+      });
+    });
+
+    const renderResults = (result, goal) => {
+      if (bmiValue) bmiValue.textContent = `${result.bmi}`;
+      if (bmiCategory) bmiCategory.textContent = getBmiCategory(result.bmi);
+      if (maintenanceCalories) maintenanceCalories.textContent = `${result.maintenanceCalories} kcal/jour`;
+      if (targetCalories) targetCalories.textContent = `${result.targetCalories} kcal/jour`;
+      if (goalBadge) goalBadge.textContent = getGoalLabel(goal);
+      if (goalDescription) {
+        goalDescription.textContent = goal === 'perte-de-poids'
+          ? 'Deficit calorique pour une perte de poids progressive'
+          : goal === 'prise-de-masse'
+            ? 'Surplus calorique pour soutenir la prise de masse'
+            : 'Apport adapte pour maintenir votre poids actuel';
+      }
+      if (deltaCalories) {
+        const sign = result.deltaCalories > 0 ? '+' : '';
+        deltaCalories.textContent = `${sign}${result.deltaCalories} kcal/jour par rapport au maintien`;
+      }
+    };
+
+    const loadStoredProfile = async () => {
+      if (!auth?.token || !auth?.model?.id) return;
+
+      try {
+        const response = await fetch(`${PB_URL}/api/collections/users/records/${auth.model.id}`, {
+          headers: { Authorization: auth.token },
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(parsePocketBaseError(payload));
+        }
+
+        const fields = {
+          sex: payload.sex || 'homme',
+          age: payload.age || '',
+          height_cm: payload.height_cm || '',
+          weight_kg: payload.weight_kg || '',
+          activity_level: payload.activity_level || 'modere',
+          nutrition_goal: payload.nutrition_goal || 'maintien',
+        };
+
+        Object.entries(fields).forEach(([key, value]) => {
+          const input = form?.querySelector(`[name="${key}"]`);
+          if (input) input.value = value;
+        });
+
+        if (sexInput) sexInput.value = fields.sex;
+        if (goalInput) goalInput.value = fields.nutrition_goal;
+        syncToggleButtons(sexButtons, fields.sex);
+        syncToggleButtons(goalButtons, fields.nutrition_goal);
+
+        if (payload.bmi && payload.target_calories) {
+          renderResults({
+            bmi: payload.bmi,
+            maintenanceCalories: payload.maintenance_calories || 0,
+            targetCalories: payload.target_calories || 0,
+            deltaCalories: (payload.target_calories || 0) - (payload.maintenance_calories || 0),
+          }, fields.nutrition_goal);
+        }
+      } catch {}
+    };
+
+    loadStoredProfile();
+
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(form);
+      const values = {
+        sex: sexInput?.value || 'homme',
+        age: Number(formData.get('age')),
+        heightCm: Number(formData.get('height_cm')),
+        weightKg: Number(formData.get('weight_kg')),
+        activityLevel: String(formData.get('activity_level') || 'modere'),
+        nutritionGoal: goalInput?.value || 'maintien',
+      };
+
+      const result = calculateCaloriePlan(values);
+      renderResults(result, values.nutritionGoal);
+
+      if (!auth?.token || !auth?.model?.id) {
+        showStatus('Calcul effectue. Connectez-vous pour enregistrer ces valeurs dans votre profil.');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${PB_URL}/api/collections/users/records/${auth.model.id}`, {
+          method: 'PATCH',
+          headers: {
+            Authorization: auth.token,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            sex: values.sex,
+            age: values.age,
+            height_cm: values.heightCm,
+            weight_kg: values.weightKg,
+            activity_level: values.activityLevel,
+            nutrition_goal: values.nutritionGoal,
+            bmi: result.bmi,
+            bmi_category: result.bmiCategory,
+            maintenance_calories: result.maintenanceCalories,
+            target_calories: result.targetCalories,
+          }),
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(parsePocketBaseError(payload));
+        }
+
+        saveStoredAuth({ token: auth.token, model: payload });
+        showStatus('Calcul effectue et enregistre dans votre profil.');
+      } catch (error) {
+        showStatus(error instanceof Error ? error.message : 'Impossible d enregistrer vos donnees.', 'error');
+      }
+    });
+  </script>
+</Layout>

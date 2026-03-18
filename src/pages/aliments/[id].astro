@@ -1,0 +1,156 @@
+---
+import RecipeCard from '../../components/RecipeCard.astro';
+import Layout from '../../layouts/Layout.astro';
+import { getFoodDetailData, getFoodsPageData } from '../../lib/local-pocketbase';
+
+export function getStaticPaths() {
+  const data = getFoodsPageData();
+
+  return data.foods.map((food) => ({
+    params: { id: food.slug },
+  }));
+}
+
+const { id } = Astro.params;
+const food = id ? getFoodDetailData(id) : null;
+
+if (!food) {
+  throw new Error(`Food not found for ${id}`);
+}
+
+const nutritionRows = [
+  { label: 'Calories', value: `${food.calories} kcal` },
+  { label: 'Proteines', value: `${food.protein} g` },
+  { label: 'Glucides', value: `${food.carbs} g` },
+  { label: 'Lipides', value: `${food.fat} g` },
+  { label: 'Fibres', value: `${food.fiber} g` },
+  { label: 'Sodium', value: food.sodium !== null ? `${food.sodium} mg` : 'Non renseigne' },
+];
+---
+
+<Layout
+  title={`NutriGuide | ${food.name}`}
+  description={food.description}
+  currentPath="/aliments"
+>
+  <main class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+    <section>
+      <a class="inline-flex items-center gap-2 text-[15px] text-[#6b7569] transition hover:text-[#4f7557]" href="/aliments">
+        <span aria-hidden="true">←</span>
+        Retour aux aliments
+      </a>
+
+      <div class="mt-6 grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+        <div class="overflow-hidden rounded-[14px] bg-[linear-gradient(135deg,#d7dfd3,#edf0e6)]">
+          {food.imageUrl ? (
+            <img class="aspect-[1.02/1] h-full w-full object-cover" src={food.imageUrl} alt={food.name} loading="eager" />
+          ) : (
+            <div class="flex aspect-[1.02/1] items-center justify-center text-5xl font-bold text-[#55755b]">
+              {food.name.slice(0, 2).toUpperCase()}
+            </div>
+          )}
+        </div>
+
+        <div class="pt-1">
+          <h1 class="text-[2.65rem] font-semibold tracking-[-0.04em] text-[#314033]">
+            {food.name}
+          </h1>
+          <p class="mt-5 max-w-[560px] text-[16px] leading-8 text-[#6b7569]">
+            {food.description}
+          </p>
+
+          {food.tags.length > 0 && (
+            <div class="mt-5 flex flex-wrap gap-2">
+              {food.tags.map((tag) => (
+                <span class="rounded-full bg-[#eef2eb] px-3 py-1 text-[12px] font-medium text-[#5c735f]">{tag}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]">Valeurs nutritionnelles</h2>
+
+      <div class="mt-5 overflow-hidden rounded-[10px] border border-[#e4ddcf] bg-white">
+        <div class="border-b border-[#efe7da] bg-[#f3eee5] px-5 py-4 text-[15px] font-medium text-[#314033]">
+          Pour 100g
+        </div>
+
+        <div>
+          {nutritionRows.map((row) => (
+            <div class="grid grid-cols-[1fr_auto] border-b border-[#efe7da] px-5 py-4 text-[15px] last:border-b-0">
+              <span class="text-[#6b7569]">{row.label}</span>
+              <span class="font-medium text-[#314033]">{row.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]">Bienfaits</h2>
+
+      <div class="mt-5 rounded-[10px] bg-[#f3eee5] px-5 py-5">
+        <ul class="space-y-3 text-[16px] leading-7 text-[#6b7569]">
+          {food.benefits.map((benefit) => (
+            <li class="flex gap-3">
+              <span class="mt-[10px] h-1.5 w-1.5 rounded-full bg-[#5d8765]"></span>
+              <span>{benefit}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]">Conseils d'utilisation</h2>
+
+      <div class="mt-5 rounded-[10px] border border-[#e4ddcf] bg-white px-5 py-5 text-[16px] leading-8 text-[#6b7569]">
+        {food.usageTips.join(' ')}
+      </div>
+    </section>
+
+    <section class="mt-10">
+      <h2 class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]">Idees de recettes</h2>
+
+      {food.relatedRecipes.length > 0 ? (
+        <div class="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {food.relatedRecipes.map((recipe) => (
+            <RecipeCard {...recipe} href={`/recettes/${recipe.slug}`} />
+          ))}
+        </div>
+      ) : (
+        <article class="mt-5 rounded-[22px] border border-[#e6dfd3] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+          <h3 class="text-[19px] font-medium tracking-[-0.02em] text-[#314033]">Aucune recette reliee</h3>
+          <p class="mt-2 text-[14px] leading-6 text-[#6b7569]">
+            Ajoutez cet aliment dans `recipe_ingredients` pour le retrouver ici automatiquement.
+          </p>
+        </article>
+      )}
+    </section>
+
+    {food.sponsoredLink && (
+      <section class="mt-10">
+        <article class="rounded-[10px] border border-[#eddac7] bg-[linear-gradient(135deg,rgba(255,247,238,0.98),rgba(255,255,255,0.92))] px-5 py-5">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a88a6a]">Sponsorise</p>
+          <h3 class="mt-3 text-[22px] font-medium tracking-[-0.03em] text-[#314033]">
+            {food.sponsoredLink.title}
+          </h3>
+          <p class="mt-2 text-[15px] leading-7 text-[#6b7569]">
+            {food.sponsoredLink.partner_name ? `${food.sponsoredLink.partner_name} propose une offre en lien avec cet aliment.` : 'Offre active liee a cet aliment dans votre base.'}
+          </p>
+          <a
+            class="mt-4 inline-flex text-sm font-semibold text-[#cf7c2f] transition hover:text-[#b86922]"
+            href={food.sponsoredLink.url}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Decouvrir →
+          </a>
+        </article>
+      </section>
+    )}
+  </main>
+</Layout>

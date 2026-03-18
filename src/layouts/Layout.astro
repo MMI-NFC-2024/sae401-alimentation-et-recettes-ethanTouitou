@@ -1,23 +1,149 @@
+---
+import '../styles/global.css';
+
+interface Props {
+	title?: string;
+	description?: string;
+	currentPath?: string;
+}
+
+const {
+	title = 'NutriGuide',
+	description = 'Trouvez des aliments, recettes et reperes nutritionnels adaptes a vos objectifs.',
+	currentPath = '/',
+} = Astro.props;
+
+const navItems = [
+	{ href: '/regimes', label: 'Regimes', active: currentPath === '/regimes' },
+	{ href: '/aliments', label: 'Aliments', active: currentPath.startsWith('/aliments') },
+	{ href: '/recettes', label: 'Recettes', active: currentPath.startsWith('/recettes') },
+	{ href: '/#conseils', label: 'Conseils', active: currentPath === '/conseils' },
+	{ href: '/calculateur', label: 'Calculateur', active: currentPath.startsWith('/calculateur') },
+];
+---
+
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
+		<meta name="description" content={description} />
+		<title>{title}</title>
 	</head>
-	<body>
-		<slot />
+	<body class="min-h-screen bg-[#f7f3ec] text-[#243428] antialiased [font-family:'Avenir_Next','Segoe_UI',sans-serif]">
+		<div class="min-h-screen pb-10">
+			<header class="mx-auto flex max-w-[1240px] flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+				<a class="flex items-center gap-3" href="/">
+					<div class="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#5d8765] text-sm font-semibold text-white">N</div>
+					<div class="flex flex-col">
+						<span class="text-[15px] font-semibold text-[#314033]">NutriGuide</span>
+						<span class="text-xs text-[#7d8478]">Base PocketBase locale</span>
+					</div>
+				</a>
+
+				<nav class="flex flex-wrap items-center gap-x-6 gap-y-2 text-[14px] text-[#727a70]">
+					{navItems.map((item) => (
+						<a
+							href={item.href}
+							class:list={[
+								'transition hover:text-[#4f7557]',
+								item.active ? 'font-semibold text-[#4f7557]' : '',
+							]}
+						>
+							{item.label}
+						</a>
+					))}
+				</nav>
+
+				<div class="flex items-center gap-3">
+					<a
+						id="auth-link"
+						class="rounded-full border border-[#dddcd2] bg-white/80 px-4 py-2 text-sm font-medium text-[#5e675d] transition hover:border-[#c8d3c4] hover:text-[#4f7557]"
+						href="/connexion"
+					>
+						Connexion
+					</a>
+					<a
+						class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#dddcd2] bg-white/80 text-[#5e675d] transition hover:border-[#c8d3c4] hover:text-[#4f7557]"
+						href="/recettes"
+						aria-label="Voir les recettes"
+					>
+						<svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<circle cx="11" cy="11" r="6.5"></circle>
+							<path d="M16 16L21 21"></path>
+						</svg>
+					</a>
+				</div>
+			</header>
+
+			<slot />
+
+			<footer class="mx-auto mt-8 max-w-[1240px] border-t border-[#dddcd1] px-4 py-8 text-[#667064] sm:px-6">
+				<div class="grid gap-8 lg:grid-cols-[1.3fr_1fr_1fr_1fr]">
+					<div class="space-y-4">
+						<div class="flex items-center gap-3">
+							<div class="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#5d8765] text-sm font-semibold text-white">N</div>
+							<span class="text-[15px] font-semibold text-[#314033]">NutriGuide</span>
+						</div>
+						<p class="max-w-[220px] text-sm leading-6">
+							Votre guide nutrition connecte a votre base PocketBase locale.
+						</p>
+					</div>
+
+					<div class="space-y-3">
+						<h4 class="text-sm font-semibold text-[#314033]">Navigation</h4>
+						<div class="grid gap-2 text-sm">
+							<a href="/regimes">Regimes alimentaires</a>
+							<a href="/aliments">Aliments</a>
+							<a href="/recettes">Recettes</a>
+							<a href="/calculateur">Calculateur</a>
+							<a href="/#conseils">Conseils nutrition</a>
+						</div>
+					</div>
+
+					<div class="space-y-3">
+						<h4 class="text-sm font-semibold text-[#314033]">Informations</h4>
+						<div class="grid gap-2 text-sm">
+							<a href="/">Accueil</a>
+							<span>A propos</span>
+							<span>Contact</span>
+							<span>Confidentialite</span>
+						</div>
+					</div>
+
+					<div class="space-y-3">
+						<h4 class="text-sm font-semibold text-[#314033]">Newsletter</h4>
+						<p class="text-sm leading-6">Recevez vos conseils nutrition chaque semaine.</p>
+						<div class="flex max-w-[240px] items-center gap-2">
+							<input
+								type="email"
+								placeholder="Votre email"
+								class="min-w-0 flex-1 rounded-[10px] border border-[#d9ddcf] bg-white px-3 py-2 text-sm outline-none placeholder:text-[#9aa196]"
+							/>
+							<button class="rounded-[10px] bg-[#5d8765] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#4f7557]">
+								OK
+							</button>
+						</div>
+					</div>
+				</div>
+				<div class="mt-8 border-t border-[#e6e0d5] pt-5 text-center text-sm text-[#7a8177]">
+					© 2026 NutriGuide. Tous droits reserves.
+				</div>
+			</footer>
+		</div>
+		<script>
+			import { getStoredAuth } from '../lib/pocketbase-browser';
+
+			const authLink = document.querySelector('#auth-link');
+			const auth = getStoredAuth();
+
+			if (authLink && auth?.model) {
+				authLink.setAttribute('href', '/profil');
+				authLink.textContent = 'Profil';
+			}
+		</script>
 	</body>
 </html>
-
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>

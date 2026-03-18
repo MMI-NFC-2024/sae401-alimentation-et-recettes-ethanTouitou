@@ -1,0 +1,90 @@
+---
+import RecipeCard from '../../../components/RecipeCard.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { getHomePageData, getRecipesPageData } from '../../../lib/local-pocketbase';
+
+export function getStaticPaths() {
+  const data = getHomePageData();
+
+  return data.dietTypes.map((dietType) => ({
+    params: { slug: dietType.slug },
+    props: { dietType },
+  }));
+}
+
+const { dietType } = Astro.props;
+const pageData = getRecipesPageData({ selectedDietSlug: dietType.slug });
+---
+
+<Layout
+  title={`NutriGuide | Recettes ${dietType.name}`}
+  description={`Recettes filtrees selon le regime ${dietType.name}.`}
+  currentPath="/recettes"
+>
+  <main class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+    <section class="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <a class="text-sm font-medium text-[#4f7557]" href="/regimes">
+          Retour aux regimes
+        </a>
+        <h1 class="mt-3 text-[2.5rem] font-semibold tracking-[-0.04em] text-[#314033] sm:text-[3.2rem]">
+          Recettes {dietType.name}
+        </h1>
+        <p class="mt-4 max-w-[780px] text-[16px] leading-8 text-[#6b7569]">
+          {dietType.description}
+        </p>
+      </div>
+
+      <span class="rounded-full bg-[#eef2eb] px-4 py-2 text-sm font-medium text-[#556a59]">
+        {pageData.recipes.length} recettes
+      </span>
+    </section>
+
+    <section class="mt-8 flex flex-wrap gap-2">
+      <a
+        href="/recettes"
+        class="rounded-full bg-white px-4 py-2 text-sm font-medium text-[#556a59] shadow-[0_8px_24px_rgba(76,82,58,0.05)]"
+      >
+        Toutes
+      </a>
+      {pageData.dietTypes.map((diet) => (
+        <a
+          href={`/recettes/regime/${diet.slug}`}
+          class:list={[
+            'rounded-full px-4 py-2 text-sm font-medium shadow-[0_8px_24px_rgba(76,82,58,0.05)]',
+            diet.slug === dietType.slug
+              ? 'bg-[#5d8765] text-white'
+              : 'bg-white text-[#556a59]',
+          ]}
+        >
+          {diet.name}
+        </a>
+      ))}
+      {pageData.nutritionGoals.map((goal) => (
+        <a
+          href={`/recettes/objectif/${goal.slug}`}
+          class="rounded-full bg-[#eef2eb] px-4 py-2 text-sm font-medium text-[#556a59] shadow-[0_8px_24px_rgba(76,82,58,0.05)]"
+        >
+          {goal.name}
+        </a>
+      ))}
+    </section>
+
+    <section class="mt-10">
+      {pageData.recipes.length > 0 ? (
+        <div class="grid gap-4 lg:grid-cols-3">
+          {pageData.recipes.map((recipe) => (
+            <RecipeCard {...recipe} href={`/recettes/${recipe.slug}`} />
+          ))}
+        </div>
+      ) : (
+        <article class="rounded-[22px] border border-[#e6dfd3] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+          <h2 class="text-[20px] font-medium text-[#314033]">Aucune recette pour ce regime</h2>
+          <p class="mt-2 text-[14px] leading-6 text-[#6b7569]">
+            Ajoutez d autres relations `diet_types` a vos recettes dans PocketBase pour enrichir cette page.
+          </p>
+        </article>
+      )}
+    </section>
+  </main>
+</Layout>

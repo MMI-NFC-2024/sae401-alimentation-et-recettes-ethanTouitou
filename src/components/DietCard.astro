@@ -1,0 +1,42 @@
+---
+interface Props {
+  name: string;
+  description: string;
+  icon: string;
+  href: string;
+  accent?: 'green' | 'sand';
+  meta?: string;
+  tone?: 'solid' | 'gradient';
+}
+
+const {
+  name,
+  description,
+  icon,
+  href,
+  accent = 'green',
+  meta,
+  tone = 'solid',
+} = Astro.props;
+---
+
+<a
+  href={href}
+  class:list={[
+    'group block rounded-[22px] border border-[#e6dfd3] p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)] transition duration-200 hover:-translate-y-1',
+    tone === 'gradient'
+      ? accent === 'green'
+        ? 'bg-[linear-gradient(180deg,rgba(234,242,233,0.95),rgba(255,255,255,0.88))]'
+        : 'bg-[linear-gradient(180deg,rgba(248,238,224,0.95),rgba(255,255,255,0.88))]'
+      : 'bg-white',
+  ]}
+>
+  <div class:list={['mb-4 inline-flex h-11 w-11 items-center justify-center rounded-[12px] text-[11px] font-bold tracking-[0.14em] text-white', accent === 'green' ? 'bg-[#5d8765]' : 'bg-[#d69655]']}>
+    {icon}
+  </div>
+  <h3 class="text-[19px] font-medium tracking-[-0.02em] text-[#314033] transition group-hover:text-[#4f7557]">
+    {name}
+  </h3>
+  <p class="mt-2 text-[14px] leading-6 text-[#6b7569]">{description}</p>
+  {meta && <p class="mt-4 text-[12px] font-medium text-[#7a8177]">{meta}</p>}
+</a>

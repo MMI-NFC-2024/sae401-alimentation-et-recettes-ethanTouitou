@@ -1,0 +1,53 @@
+---
+import DietCard from '../../components/DietCard.astro';
+import Layout from '../../layouts/Layout.astro';
+import { getDietBrowseData } from '../../lib/local-pocketbase';
+
+const diets = getDietBrowseData();
+---
+
+<Layout
+  title="NutriGuide | Regimes alimentaires"
+  description="Choisissez un regime alimentaire puis consultez les recettes de votre base PocketBase associees."
+  currentPath="/regimes"
+>
+  <main class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+    <section>
+      <h1 class="text-[2.5rem] font-semibold tracking-[-0.04em] text-[#314033] sm:text-[3.2rem]">
+        Regimes alimentaires
+      </h1>
+      <p class="mt-5 max-w-[900px] text-[18px] leading-8 text-[#6b7569]">
+        Trouvez le regime alimentaire qui correspond a vos valeurs, vos contraintes de sante ou vos objectifs nutritionnels. Chaque regime propose des recettes et aliments adaptes.
+      </p>
+    </section>
+
+    <section class="mt-12">
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {diets.map((diet, index) => (
+          <DietCard
+            name={diet.name}
+            description={diet.description}
+            icon={diet.icon}
+            href={`/regimes/${diet.slug}`}
+            accent={index % 2 === 0 ? 'green' : 'sand'}
+            meta={`${diet.recipeCount} recettes • ${diet.foodCount} aliments`}
+            tone="gradient"
+          />
+        ))}
+      </div>
+    </section>
+
+    <section class="mt-12 rounded-[24px] bg-[#efebe4] p-8">
+      <h2 class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]">
+        Comment choisir son regime alimentaire ?
+      </h2>
+      <p class="mt-5 text-[16px] leading-8 text-[#6b7569]">
+        Le choix d un regime alimentaire depend de plusieurs facteurs : vos objectifs de sante,
+        vos valeurs personnelles, vos eventuelles intolerances alimentaires, et votre mode de vie.
+      </p>
+      <p class="mt-5 text-[16px] leading-8 text-[#6b7569]">
+        Chaque regime presente ici offre des benefices specifiques. N hesitez pas a consulter un professionnel de sante avant d entreprendre un changement alimentaire important.
+      </p>
+    </section>
+  </main>
+</Layout>

@@ -1,0 +1,196 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="NutriGuide | Connexion"
+  description="Connectez-vous ou creez votre compte pour retrouver votre profil NutriGuide."
+>
+  <main class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+    <section class="mx-auto max-w-[1040px]">
+      <h1 class="text-[2.7rem] font-semibold tracking-[-0.04em] text-[#314033]">
+        Connexion et creation de compte
+      </h1>
+      <p class="mt-4 max-w-[760px] text-[16px] leading-8 text-[#6b7569]">
+        Connectez-vous a votre compte NutriGuide ou creez-en un nouveau pour acceder a votre profil.
+      </p>
+
+      <div id="auth-status" class="mt-4 hidden rounded-[12px] border px-4 py-3 text-sm"></div>
+
+      <div class="mt-10 grid gap-6 lg:grid-cols-2">
+        <section class="rounded-[24px] border border-[#e4ddcf] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+          <h2 class="text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">Se connecter</h2>
+          <form id="login-form" class="mt-6 space-y-4">
+            <label class="block space-y-2">
+              <span class="text-sm font-medium text-[#314033]">Email</span>
+              <input
+                type="email"
+                name="email"
+                required
+                class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]"
+                placeholder="vous@example.com"
+              />
+            </label>
+            <label class="block space-y-2">
+              <span class="text-sm font-medium text-[#314033]">Mot de passe</span>
+              <input
+                type="password"
+                name="password"
+                required
+                class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]"
+                placeholder="********"
+              />
+            </label>
+            <button class="w-full rounded-[12px] bg-[#5d8765] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#4f7557]">
+              Se connecter
+            </button>
+          </form>
+        </section>
+
+        <section class="rounded-[24px] border border-[#e4ddcf] bg-[linear-gradient(180deg,#f7f3ec,#ffffff)] p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+          <h2 class="text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">Creer un compte</h2>
+          <form id="signup-form" class="mt-6 space-y-4">
+            <label class="block space-y-2">
+              <span class="text-sm font-medium text-[#314033]">Nom</span>
+              <input
+                type="text"
+                name="name"
+                class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]"
+                placeholder="Votre nom"
+              />
+            </label>
+            <label class="block space-y-2">
+              <span class="text-sm font-medium text-[#314033]">Email</span>
+              <input
+                type="email"
+                name="email"
+                required
+                class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]"
+                placeholder="vous@example.com"
+              />
+            </label>
+            <label class="block space-y-2">
+              <span class="text-sm font-medium text-[#314033]">Mot de passe</span>
+              <input
+                type="password"
+                name="password"
+                required
+                minlength="8"
+                class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]"
+                placeholder="Minimum 8 caracteres"
+              />
+            </label>
+            <label class="block space-y-2">
+              <span class="text-sm font-medium text-[#314033]">Confirmer le mot de passe</span>
+              <input
+                type="password"
+                name="passwordConfirm"
+                required
+                minlength="8"
+                class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]"
+                placeholder="Retapez votre mot de passe"
+              />
+            </label>
+            <button class="w-full rounded-[12px] bg-[#314033] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#263327]">
+              Creer mon compte
+            </button>
+          </form>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    import { AUTH_STORAGE_KEY, PB_URL, parsePocketBaseError, saveStoredAuth, getStoredAuth } from '../lib/pocketbase-browser';
+
+    const loginForm = document.querySelector('#login-form');
+    const signupForm = document.querySelector('#signup-form');
+    const statusNode = document.querySelector('#auth-status');
+
+    const showStatus = (message, tone = 'success') => {
+      if (!statusNode) return;
+      statusNode.textContent = message;
+      statusNode.className = `mt-4 rounded-[12px] border px-4 py-3 text-sm ${tone === 'error' ? 'border-[#e4b6b1] bg-[#fff4f3] text-[#8a4b43]' : 'border-[#d2dfcd] bg-[#f5faf3] text-[#4f7557]'}`;
+      statusNode.classList.remove('hidden');
+    };
+
+    if (getStoredAuth()) {
+      window.location.href = '/profil';
+    }
+
+    loginForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = new FormData(loginForm);
+
+      try {
+        const response = await fetch(`${PB_URL}/api/collections/users/auth-with-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identity: form.get('email'),
+            password: form.get('password'),
+          }),
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(parsePocketBaseError(payload));
+        }
+
+        saveStoredAuth({ token: payload.token, model: payload.record });
+        showStatus('Connexion reussie, redirection vers votre profil...');
+        window.setTimeout(() => {
+          window.location.href = '/profil';
+        }, 500);
+      } catch (error) {
+        showStatus(error instanceof Error ? error.message : 'Connexion impossible.', 'error');
+      }
+    });
+
+    signupForm?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = new FormData(signupForm);
+
+      try {
+        const createResponse = await fetch(`${PB_URL}/api/collections/users/records`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: form.get('name'),
+            email: form.get('email'),
+            password: form.get('password'),
+            passwordConfirm: form.get('passwordConfirm'),
+            emailVisibility: true,
+          }),
+        });
+        const createPayload = await createResponse.json();
+
+        if (!createResponse.ok) {
+          throw new Error(parsePocketBaseError(createPayload));
+        }
+
+        const authResponse = await fetch(`${PB_URL}/api/collections/users/auth-with-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identity: form.get('email'),
+            password: form.get('password'),
+          }),
+        });
+        const authPayload = await authResponse.json();
+
+        if (!authResponse.ok) {
+          throw new Error(parsePocketBaseError(authPayload));
+        }
+
+        saveStoredAuth({ token: authPayload.token, model: authPayload.record });
+        showStatus('Compte cree avec succes, redirection vers votre profil...');
+        window.setTimeout(() => {
+          window.location.href = '/profil';
+        }, 500);
+      } catch (error) {
+        showStatus(error instanceof Error ? error.message : 'Creation de compte impossible.', 'error');
+      }
+    });
+  </script>
+</Layout>
