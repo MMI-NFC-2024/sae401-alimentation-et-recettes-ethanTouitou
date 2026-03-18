@@ -17,7 +17,7 @@ const navItems = [
 	{ href: '/regimes', label: 'Regimes', active: currentPath === '/regimes' },
 	{ href: '/aliments', label: 'Aliments', active: currentPath.startsWith('/aliments') },
 	{ href: '/recettes', label: 'Recettes', active: currentPath.startsWith('/recettes') },
-	{ href: '/#conseils', label: 'Conseils', active: currentPath === '/conseils' },
+	{ href: '/conseils', label: 'Conseils', active: currentPath.startsWith('/conseils') },
 	{ href: '/calculateur', label: 'Calculateur', active: currentPath.startsWith('/calculateur') },
 ];
 ---
@@ -35,47 +35,103 @@ const navItems = [
 	</head>
 	<body class="min-h-screen bg-[#f7f3ec] text-[#243428] antialiased [font-family:'Avenir_Next','Segoe_UI',sans-serif]">
 		<div class="min-h-screen pb-10">
-			<header class="mx-auto flex max-w-[1240px] flex-col gap-4 px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
-				<a class="flex items-center gap-3" href="/">
-					<div class="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#5d8765] text-sm font-semibold text-white">N</div>
-					<div class="flex flex-col">
-						<span class="text-[15px] font-semibold text-[#314033]">NutriGuide</span>
-						<span class="text-xs text-[#7d8478]">Base PocketBase locale</span>
-					</div>
-				</a>
+			<header class="mx-auto max-w-[1240px] px-4 py-5 sm:px-6">
+				<div class="flex items-center justify-between gap-4">
+					<a class="flex items-center gap-3" href="/">
+						<div class="flex h-8 w-8 items-center justify-center rounded-[8px] bg-[#5d8765] text-sm font-semibold text-white">N</div>
+						<div class="flex flex-col">
+							<span class="text-[15px] font-semibold text-[#314033]">NutriGuide</span>
+							<span class="text-xs text-[#7d8478]">Base PocketBase locale</span>
+						</div>
+					</a>
 
-				<nav class="flex flex-wrap items-center gap-x-6 gap-y-2 text-[14px] text-[#727a70]">
-					{navItems.map((item) => (
+					<nav class="hidden flex-wrap items-center gap-x-6 gap-y-2 text-[14px] text-[#727a70] lg:flex">
+						{navItems.map((item) => (
+							<a
+								href={item.href}
+								class:list={[
+									'transition hover:text-[#4f7557]',
+									item.active ? 'font-semibold text-[#4f7557]' : '',
+								]}
+							>
+								{item.label}
+							</a>
+						))}
+					</nav>
+
+					<div class="hidden items-center gap-3 lg:flex">
 						<a
-							href={item.href}
-							class:list={[
-								'transition hover:text-[#4f7557]',
-								item.active ? 'font-semibold text-[#4f7557]' : '',
-							]}
+							data-auth-link
+							class="rounded-full border border-[#dddcd2] bg-white/80 px-4 py-2 text-sm font-medium text-[#5e675d] transition hover:border-[#c8d3c4] hover:text-[#4f7557]"
+							href="/connexion"
 						>
-							{item.label}
+							Connexion
 						</a>
-					))}
-				</nav>
+						<a
+							class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#dddcd2] bg-white/80 text-[#5e675d] transition hover:border-[#c8d3c4] hover:text-[#4f7557]"
+							href="/recherche"
+							aria-label="Voir les recettes"
+						>
+							<svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<circle cx="11" cy="11" r="6.5"></circle>
+								<path d="M16 16L21 21"></path>
+							</svg>
+						</a>
+					</div>
 
-				<div class="flex items-center gap-3">
-					<a
-						id="auth-link"
-						class="rounded-full border border-[#dddcd2] bg-white/80 px-4 py-2 text-sm font-medium text-[#5e675d] transition hover:border-[#c8d3c4] hover:text-[#4f7557]"
-						href="/connexion"
+					<button
+						id="mobile-menu-button"
+						type="button"
+						class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#dddcd2] bg-white/80 text-[#5e675d] transition hover:border-[#c8d3c4] hover:text-[#4f7557] lg:hidden"
+						aria-expanded="false"
+						aria-controls="mobile-menu"
+						aria-label="Ouvrir le menu"
 					>
-						Connexion
-					</a>
-					<a
-						class="inline-flex h-9 w-9 items-center justify-center rounded-full border border-[#dddcd2] bg-white/80 text-[#5e675d] transition hover:border-[#c8d3c4] hover:text-[#4f7557]"
-						href="/recettes"
-						aria-label="Voir les recettes"
-					>
-						<svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-							<circle cx="11" cy="11" r="6.5"></circle>
-							<path d="M16 16L21 21"></path>
+						<svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+							<path d="M4 7h16"></path>
+							<path d="M4 12h16"></path>
+							<path d="M4 17h16"></path>
 						</svg>
-					</a>
+					</button>
+				</div>
+
+				<div
+					id="mobile-menu"
+					class="hidden rounded-[20px] border border-[#e4ddcf] bg-white/95 p-4 shadow-[0_18px_36px_rgba(76,82,58,0.06)] lg:hidden"
+				>
+					<nav class="grid gap-2 text-[15px] text-[#5e675d]">
+						{navItems.map((item) => (
+							<a
+								href={item.href}
+								class:list={[
+									'rounded-[12px] px-3 py-3 transition hover:bg-[#f4f7f1] hover:text-[#4f7557]',
+									item.active ? 'bg-[#f4f7f1] font-semibold text-[#4f7557]' : '',
+								]}
+							>
+								{item.label}
+							</a>
+						))}
+					</nav>
+
+					<div class="mt-4 flex items-center gap-3 border-t border-[#ece7db] pt-4">
+						<a
+							data-auth-link
+							class="flex-1 rounded-full border border-[#dddcd2] bg-white px-4 py-2 text-center text-sm font-medium text-[#5e675d] transition hover:border-[#c8d3c4] hover:text-[#4f7557]"
+							href="/connexion"
+						>
+							Connexion
+						</a>
+						<a
+							class="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#dddcd2] bg-white text-[#5e675d] transition hover:border-[#c8d3c4] hover:text-[#4f7557]"
+							href="/recherche"
+							aria-label="Voir les recettes"
+						>
+							<svg class="h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+								<circle cx="11" cy="11" r="6.5"></circle>
+								<path d="M16 16L21 21"></path>
+							</svg>
+						</a>
+					</div>
 				</div>
 			</header>
 
@@ -100,7 +156,7 @@ const navItems = [
 							<a href="/aliments">Aliments</a>
 							<a href="/recettes">Recettes</a>
 							<a href="/calculateur">Calculateur</a>
-							<a href="/#conseils">Conseils nutrition</a>
+							<a href="/conseils">Conseils nutrition</a>
 						</div>
 					</div>
 
@@ -137,13 +193,37 @@ const navItems = [
 		<script>
 			import { getStoredAuth } from '../lib/pocketbase-browser';
 
-			const authLink = document.querySelector('#auth-link');
+			const authLinks = Array.from(document.querySelectorAll('[data-auth-link]'));
 			const auth = getStoredAuth();
+			const mobileMenuButton = document.querySelector('#mobile-menu-button');
+			const mobileMenu = document.querySelector('#mobile-menu');
 
-			if (authLink && auth?.model) {
-				authLink.setAttribute('href', '/profil');
-				authLink.textContent = 'Profil';
+			if (authLinks.length > 0 && auth?.model) {
+				authLinks.forEach((authLink) => {
+					authLink.setAttribute('href', '/profil');
+					authLink.textContent = 'Profil';
+				});
 			}
+
+			mobileMenuButton?.addEventListener('click', () => {
+				const isOpen = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+				mobileMenuButton.setAttribute('aria-expanded', String(!isOpen));
+				mobileMenu?.classList.toggle('hidden', isOpen);
+			});
+
+			mobileMenu?.querySelectorAll('a').forEach((link) => {
+				link.addEventListener('click', () => {
+					mobileMenuButton?.setAttribute('aria-expanded', 'false');
+					mobileMenu.classList.add('hidden');
+				});
+			});
+
+			window.addEventListener('resize', () => {
+				if (window.innerWidth >= 1024) {
+					mobileMenuButton?.setAttribute('aria-expanded', 'false');
+					mobileMenu?.classList.add('hidden');
+				}
+			});
 		</script>
 	</body>
 </html>

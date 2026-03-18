@@ -26,11 +26,32 @@ const pageData = getFoodsPageData();
       </span>
     </section>
 
+    <section class="mt-8">
+      <div class="flex items-center gap-3 rounded-[18px] border border-[#e4ddcf] bg-white px-5 py-4 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+        <svg class="h-[18px] w-[18px] text-[#7a8378]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5"></circle>
+          <path d="M16 16L21 21"></path>
+        </svg>
+        <input
+          id="foods-search-input"
+          type="search"
+          placeholder="Rechercher un aliment..."
+          autocomplete="off"
+          class="w-full border-0 bg-transparent text-[15px] text-[#314033] outline-none placeholder:text-[#98a096]"
+        />
+      </div>
+      <div id="foods-search-summary" class="mt-3 text-sm text-[#6b7569]">
+        Parcourez toutes les fiches aliments disponibles.
+      </div>
+    </section>
+
     <section class="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {pageData.foods.map((food) => (
         <a
           href={`/aliments/${food.slug}`}
           class="group overflow-hidden rounded-[22px] border border-[#e6dfd3] bg-white shadow-[0_18px_36px_rgba(76,82,58,0.06)] transition duration-200 hover:-translate-y-1"
+          data-food-card
+          data-food-search={`${food.name} ${food.summary} ${food.tags.join(' ')}`}
         >
           <div class="aspect-[1.05/1] bg-[linear-gradient(135deg,#d7dfd3,#edf0e6)]">
             {food.imageUrl ? (
@@ -74,5 +95,53 @@ const pageData = getFoodsPageData();
         </a>
       ))}
     </section>
+
+    <section id="foods-empty" class="mt-10 hidden rounded-[22px] border border-[#e6dfd3] bg-white p-6 text-center shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+      <h2 class="text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">Aucun aliment trouve</h2>
+      <p class="mt-3 text-[15px] leading-7 text-[#6b7569]">
+        Essayez un autre nom d aliment ou un mot-cle nutritionnel.
+      </p>
+    </section>
   </main>
+
+  <script is:inline>
+    const searchInput = document.querySelector('#foods-search-input');
+    const searchSummary = document.querySelector('#foods-search-summary');
+    const emptyState = document.querySelector('#foods-empty');
+    const cards = Array.from(document.querySelectorAll('[data-food-card]'));
+
+    const applyFoodSearch = (rawQuery) => {
+      const query = rawQuery.trim().toLowerCase();
+      let visibleCount = 0;
+
+      cards.forEach((card) => {
+        const haystack = card.dataset.foodSearch?.toLowerCase() || '';
+        const isVisible = query.length === 0 || haystack.includes(query);
+        card.classList.toggle('hidden', !isVisible);
+        if (isVisible) visibleCount += 1;
+      });
+
+      if (searchSummary) {
+        searchSummary.textContent = query.length === 0
+          ? 'Parcourez toutes les fiches aliments disponibles.'
+          : `${visibleCount} aliment(s) trouve(s) pour "${rawQuery.trim()}".`;
+      }
+
+      if (emptyState) {
+        emptyState.classList.toggle('hidden', visibleCount > 0);
+      }
+
+      const nextUrl = query.length === 0 ? '/aliments' : `/aliments?q=${encodeURIComponent(rawQuery.trim())}`;
+      window.history.replaceState({}, '', nextUrl);
+    };
+
+    const initialQuery = new URLSearchParams(window.location.search).get('q') || '';
+    if (searchInput) {
+      searchInput.value = initialQuery;
+      applyFoodSearch(initialQuery);
+      searchInput.addEventListener('input', (event) => {
+        applyFoodSearch(event.currentTarget.value || '');
+      });
+    }
+  </script>
 </Layout>

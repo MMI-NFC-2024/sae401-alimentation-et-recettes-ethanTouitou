@@ -52,12 +52,84 @@ const pageData = getRecipesPageData();
       ))}
     </section>
 
+    <section class="mt-8">
+      <div class="flex items-center gap-3 rounded-[18px] border border-[#e4ddcf] bg-white px-5 py-4 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+        <svg class="h-[18px] w-[18px] text-[#7a8378]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5"></circle>
+          <path d="M16 16L21 21"></path>
+        </svg>
+        <input
+          id="recipes-search-input"
+          type="search"
+          placeholder="Rechercher une recette..."
+          autocomplete="off"
+          class="w-full border-0 bg-transparent text-[15px] text-[#314033] outline-none placeholder:text-[#98a096]"
+        />
+      </div>
+      <div id="recipes-search-summary" class="mt-3 text-sm text-[#6b7569]">
+        Parcourez toutes les recettes disponibles.
+      </div>
+    </section>
+
     <section class="mt-10">
       <div class="grid gap-4 lg:grid-cols-3">
         {pageData.recipes.map((recipe) => (
-          <RecipeCard {...recipe} href={`/recettes/${recipe.slug}`} />
+          <div
+            data-recipe-card
+            data-recipe-search={`${recipe.title} ${recipe.summary} ${recipe.tags.join(' ')}`}
+          >
+            <RecipeCard {...recipe} href={`/recettes/${recipe.slug}`} />
+          </div>
         ))}
       </div>
     </section>
+
+    <section id="recipes-empty" class="mt-10 hidden rounded-[22px] border border-[#e6dfd3] bg-white p-6 text-center shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+      <h2 class="text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">Aucune recette trouvee</h2>
+      <p class="mt-3 text-[15px] leading-7 text-[#6b7569]">
+        Essayez un autre ingredient, un autre type de plat ou un mot-cle nutritionnel.
+      </p>
+    </section>
   </main>
+
+  <script is:inline>
+    const searchInput = document.querySelector('#recipes-search-input');
+    const searchSummary = document.querySelector('#recipes-search-summary');
+    const emptyState = document.querySelector('#recipes-empty');
+    const cards = Array.from(document.querySelectorAll('[data-recipe-card]'));
+
+    const applyRecipeSearch = (rawQuery) => {
+      const query = rawQuery.trim().toLowerCase();
+      let visibleCount = 0;
+
+      cards.forEach((card) => {
+        const haystack = card.dataset.recipeSearch?.toLowerCase() || '';
+        const isVisible = query.length === 0 || haystack.includes(query);
+        card.classList.toggle('hidden', !isVisible);
+        if (isVisible) visibleCount += 1;
+      });
+
+      if (searchSummary) {
+        searchSummary.textContent = query.length === 0
+          ? 'Parcourez toutes les recettes disponibles.'
+          : `${visibleCount} recette(s) trouvee(s) pour "${rawQuery.trim()}".`;
+      }
+
+      if (emptyState) {
+        emptyState.classList.toggle('hidden', visibleCount > 0);
+      }
+
+      const nextUrl = query.length === 0 ? '/recettes' : `/recettes?q=${encodeURIComponent(rawQuery.trim())}`;
+      window.history.replaceState({}, '', nextUrl);
+    };
+
+    const initialQuery = new URLSearchParams(window.location.search).get('q') || '';
+    if (searchInput) {
+      searchInput.value = initialQuery;
+      applyRecipeSearch(initialQuery);
+      searchInput.addEventListener('input', (event) => {
+        applyRecipeSearch(event.currentTarget.value || '');
+      });
+    }
+  </script>
 </Layout>

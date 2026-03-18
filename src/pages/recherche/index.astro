@@ -1,0 +1,206 @@
+---
+import RecipeCard from '../../components/RecipeCard.astro';
+import Layout from '../../layouts/Layout.astro';
+import { getHomePageData } from '../../lib/local-pocketbase';
+
+const data = getHomePageData();
+---
+
+<Layout
+  title="NutriGuide | Recherche"
+  description="Recherchez un aliment ou une recette dans votre base PocketBase locale."
+>
+  <main class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+    <section class="mx-auto max-w-[980px] text-center">
+      <h1 class="text-[2.5rem] font-semibold tracking-[-0.04em] text-[#314033] sm:text-[3.2rem]">
+        Recherche aliments et recettes
+      </h1>
+      <p class="mt-4 text-[16px] leading-8 text-[#6b7569]">
+        Lancez une recherche globale dans vos fiches aliments et vos recettes.
+      </p>
+
+      <form action="/recherche" method="get" class="mx-auto mt-8 flex max-w-[760px] items-center gap-3 rounded-[18px] border border-[#e4ddcf] bg-white px-5 py-4 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+        <svg class="h-[18px] w-[18px] text-[#7a8378]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="6.5"></circle>
+          <path d="M16 16L21 21"></path>
+        </svg>
+        <input
+          id="global-search-input"
+          name="q"
+          type="search"
+          placeholder="Ex: avocat, quinoa, salade..."
+          autocomplete="off"
+          class="w-full border-0 bg-transparent text-[15px] text-[#314033] outline-none placeholder:text-[#98a096]"
+        />
+        <button class="hidden rounded-full bg-[#5d8765] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#4f7557] sm:inline-flex">
+          Rechercher
+        </button>
+      </form>
+
+      <div id="search-summary" class="mt-4 text-sm text-[#6b7569]">
+        Explorez toutes les fiches disponibles.
+      </div>
+    </section>
+
+    <section class="mt-10">
+      <div class="flex flex-wrap gap-3">
+        <div class="rounded-full bg-[#eef2eb] px-4 py-2 text-sm font-medium text-[#556a59]">
+          <span id="recipes-count">{data.recipes.length}</span> recettes
+        </div>
+        <div class="rounded-full bg-white px-4 py-2 text-sm font-medium text-[#556a59] shadow-[0_8px_24px_rgba(76,82,58,0.05)]">
+          <span id="foods-count">{data.foods.length}</span> aliments
+        </div>
+      </div>
+    </section>
+
+    <section id="recipes-results" class="mt-10">
+      <div class="mb-6 flex items-end justify-between gap-4">
+        <div>
+          <h2 class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]">Recettes</h2>
+          <p class="mt-2 text-[15px] leading-7 text-[#6b7569]">
+            Resultats issus de la collection recipes.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid gap-4 lg:grid-cols-3">
+        {data.recipes.map((recipe) => (
+          <div
+            data-search-card
+            data-type="recipe"
+            data-search-text={`${recipe.title} ${recipe.summary} ${recipe.tags.join(' ')}`}
+          >
+            <RecipeCard {...recipe} href={`/recettes/${recipe.slug}`} />
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section id="foods-results" class="mt-12">
+      <div class="mb-6 flex items-end justify-between gap-4">
+        <div>
+          <h2 class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]">Aliments</h2>
+          <p class="mt-2 text-[15px] leading-7 text-[#6b7569]">
+            Resultats issus de la collection foods.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        {data.foods.map((food) => (
+          <a
+            href={`/aliments/${food.slug}`}
+            class="group overflow-hidden rounded-[22px] border border-[#e6dfd3] bg-white shadow-[0_18px_36px_rgba(76,82,58,0.06)] transition duration-200 hover:-translate-y-1"
+            data-search-card
+            data-type="food"
+            data-search-text={`${food.name} ${food.summary} ${food.tags.join(' ')}`}
+          >
+            <div class="aspect-[1.05/1] bg-[linear-gradient(135deg,#d7dfd3,#edf0e6)]">
+              {food.imageUrl ? (
+                <img class="h-full w-full object-cover" src={food.imageUrl} alt={food.name} loading="lazy" />
+              ) : (
+                <div class="flex h-full w-full items-center justify-center text-3xl font-bold text-[#55755b]">
+                  {food.name.slice(0, 2).toUpperCase()}
+                </div>
+              )}
+            </div>
+
+            <div class="space-y-3 p-4">
+              <h3 class="text-[21px] font-medium tracking-[-0.03em] text-[#314033] transition group-hover:text-[#4f7557]">
+                {food.name}
+              </h3>
+              <p class="text-[14px] leading-6 text-[#6b7569]">{food.summary}</p>
+
+              <div class="grid grid-cols-3 gap-3 text-[11px] text-[#7b8479]">
+                <div class="space-y-1">
+                  <div class="text-[15px] font-semibold text-[#314033]">{food.protein} g</div>
+                  <div>Proteines</div>
+                </div>
+                <div class="space-y-1">
+                  <div class="text-[15px] font-semibold text-[#314033]">{food.carbs} g</div>
+                  <div>Glucides</div>
+                </div>
+                <div class="space-y-1">
+                  <div class="text-[15px] font-semibold text-[#314033]">{food.calories}</div>
+                  <div>kcal</div>
+                </div>
+              </div>
+
+              {food.tags.length > 0 && (
+                <div class="flex flex-wrap gap-2">
+                  {food.tags.map((tag) => (
+                    <span class="rounded-full bg-[#eef2eb] px-3 py-1 text-[11px] font-medium text-[#556a59]">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section id="search-empty" class="mt-10 hidden rounded-[22px] border border-[#e6dfd3] bg-white p-6 text-center shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+      <h2 class="text-[1.8rem] font-semibold tracking-[-0.03em] text-[#314033]">Aucun resultat</h2>
+      <p class="mt-3 text-[15px] leading-7 text-[#6b7569]">
+        Essayez un autre mot-cle, un nom d aliment ou un titre de recette.
+      </p>
+    </section>
+  </main>
+
+  <script is:inline>
+    const searchInput = document.querySelector('#global-search-input');
+    const cards = Array.from(document.querySelectorAll('[data-search-card]'));
+    const recipesCount = document.querySelector('#recipes-count');
+    const foodsCount = document.querySelector('#foods-count');
+    const searchSummary = document.querySelector('#search-summary');
+    const emptyState = document.querySelector('#search-empty');
+    const recipesSection = document.querySelector('#recipes-results');
+    const foodsSection = document.querySelector('#foods-results');
+
+    const applySearch = (rawQuery) => {
+      const query = rawQuery.trim().toLowerCase();
+      let visibleRecipes = 0;
+      let visibleFoods = 0;
+
+      cards.forEach((card) => {
+        const haystack = card.dataset.searchText?.toLowerCase() || '';
+        const isVisible = query.length === 0 || haystack.includes(query);
+        card.classList.toggle('hidden', !isVisible);
+
+        if (isVisible) {
+          if (card.dataset.type === 'recipe') visibleRecipes += 1;
+          if (card.dataset.type === 'food') visibleFoods += 1;
+        }
+      });
+
+      if (recipesCount) recipesCount.textContent = String(visibleRecipes);
+      if (foodsCount) foodsCount.textContent = String(visibleFoods);
+
+      if (recipesSection) recipesSection.classList.toggle('hidden', visibleRecipes === 0);
+      if (foodsSection) foodsSection.classList.toggle('hidden', visibleFoods === 0);
+
+      const total = visibleRecipes + visibleFoods;
+      if (emptyState) emptyState.classList.toggle('hidden', total > 0);
+
+      if (searchSummary) {
+        searchSummary.textContent = query.length === 0
+          ? 'Explorez toutes les fiches disponibles.'
+          : `${total} resultat(s) pour "${rawQuery.trim()}".`;
+      }
+
+      const nextUrl = query.length === 0 ? '/recherche' : `/recherche?q=${encodeURIComponent(rawQuery.trim())}`;
+      window.history.replaceState({}, '', nextUrl);
+    };
+
+    const initialQuery = new URLSearchParams(window.location.search).get('q') || '';
+    if (searchInput) {
+      searchInput.value = initialQuery;
+      applySearch(initialQuery);
+      searchInput.addEventListener('input', (event) => {
+        applySearch(event.currentTarget.value || '');
+      });
+    } else {
+      applySearch(initialQuery);
+    }
+  </script>
+</Layout>
