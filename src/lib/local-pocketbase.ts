@@ -281,14 +281,20 @@ function resolveProjectRoot() {
 
 const projectRoot = resolveProjectRoot();
 const dbSourcePath = path.join(projectRoot, 'backend', 'pb_data', 'data.db');
+const dbSourceWalPath = `${dbSourcePath}-wal`;
+const dbSourceShmPath = `${dbSourcePath}-shm`;
 const storageRoot = path.join(projectRoot, 'backend', 'pb_data', 'storage');
 const storageApps = existsSync(storageRoot) ? readdirSync(storageRoot) : [];
 const pieceWeights = new Map([
   ['Avocat', 150],
+  ['Banane', 120],
+  ['Oeufs', 50],
   ['Patate douce', 130],
   ['Yaourt nature', 125],
 ]);
 let dbSnapshotPath: string | null = null;
+let dbSnapshotWalPath: string | null = null;
+let dbSnapshotShmPath: string | null = null;
 
 function getQueryableDbPath() {
   if (dbSnapshotPath && existsSync(dbSnapshotPath)) {
@@ -301,11 +307,25 @@ function getQueryableDbPath() {
 
   const snapshotPath = path.join(tmpdir(), `nutriguide-data-${process.pid}-${Date.now()}.db`);
   copyFileSync(dbSourcePath, snapshotPath);
+  if (existsSync(dbSourceWalPath)) {
+    copyFileSync(dbSourceWalPath, `${snapshotPath}-wal`);
+  }
+  if (existsSync(dbSourceShmPath)) {
+    copyFileSync(dbSourceShmPath, `${snapshotPath}-shm`);
+  }
   dbSnapshotPath = snapshotPath;
+  dbSnapshotWalPath = `${snapshotPath}-wal`;
+  dbSnapshotShmPath = `${snapshotPath}-shm`;
 
   process.once('exit', () => {
     if (dbSnapshotPath && existsSync(dbSnapshotPath)) {
       unlinkSync(dbSnapshotPath);
+    }
+    if (dbSnapshotWalPath && existsSync(dbSnapshotWalPath)) {
+      unlinkSync(dbSnapshotWalPath);
+    }
+    if (dbSnapshotShmPath && existsSync(dbSnapshotShmPath)) {
+      unlinkSync(dbSnapshotShmPath);
     }
   });
 
