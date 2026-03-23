@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   site: 'https://nutriguide.ethantouitou.fr',
+  output: 'server',
 
   adapter: node({
     mode: 'standalone'
