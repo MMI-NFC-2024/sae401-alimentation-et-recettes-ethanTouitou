@@ -22,3 +22,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+pocketbase-mcp/
+
+backend/*
+!backend/pb_migrations/
+!backend/pb_migrations/**
