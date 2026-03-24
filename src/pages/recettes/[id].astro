@@ -1,7 +1,10 @@
 ---
-import RecipeCard from '../../components/RecipeCard.astro';
-import Layout from '../../layouts/Layout.astro';
-import { getHomePageData, getRecipeDetailData } from '../../lib/local-pocketbase';
+import RecipeCard from "../../components/RecipeCard.astro";
+import Layout from "../../layouts/Layout.astro";
+import {
+  getHomePageData,
+  getRecipeDetailData,
+} from "../../lib/local-pocketbase";
 
 export function getStaticPaths() {
   const data = getHomePageData();
@@ -26,193 +29,305 @@ if (!recipe) {
 >
   <main class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
     <section>
-      <a class="inline-flex items-center gap-2 text-[15px] text-[#6b7569] transition hover:text-[#4f7557]" href="/recettes">
+      <a
+        class="inline-flex items-center gap-2 text-[15px] text-[#6b7569] transition hover:text-[#4f7557]"
+        href="/recettes"
+      >
         <span aria-hidden="true">←</span>
         Retour aux recettes
       </a>
 
-      <div class="mt-6 grid gap-8 xl:grid-cols-[minmax(0,860px)_340px] xl:items-start xl:justify-between">
+      <div
+        class="mt-6 grid gap-8 xl:grid-cols-[minmax(0,860px)_340px] xl:items-start xl:justify-between"
+      >
         <div class="min-w-0">
-          <div class="overflow-hidden rounded-[14px] bg-[linear-gradient(135deg,#d7dfd3,#edf0e6)]">
-            {recipe.imageUrl ? (
-              <img class="aspect-[1.55/1] h-full w-full object-cover" src={recipe.imageUrl} alt={recipe.title} loading="eager" />
-            ) : (
-              <div class="flex aspect-[1.55/1] items-center justify-center text-5xl font-bold text-[#55755b]">
-                {recipe.title.slice(0, 2).toUpperCase()}
-              </div>
-            )}
+          <div
+            class="overflow-hidden rounded-[14px] bg-[linear-gradient(135deg,#d7dfd3,#edf0e6)]"
+          >
+            {
+              recipe.imageUrl ? (
+                <img
+                  class="aspect-[1.55/1] h-full w-full object-cover"
+                  src={recipe.imageUrl}
+                  alt={recipe.title}
+                  loading="eager"
+                />
+              ) : (
+                <div class="flex aspect-[1.55/1] items-center justify-center text-5xl font-bold text-[#55755b]">
+                  {recipe.title.slice(0, 2).toUpperCase()}
+                </div>
+              )
+            }
           </div>
 
           <div class="mt-6">
-            <h1 class="text-[2.65rem] font-semibold tracking-[-0.04em] text-[#314033]">
+            <h1
+              class="text-[2.65rem] font-semibold tracking-[-0.04em] text-[#314033]"
+            >
               {recipe.title}
             </h1>
             <p class="mt-4 max-w-[760px] text-[16px] leading-8 text-[#6b7569]">
               {recipe.description}
             </p>
 
-            {recipe.tags.length > 0 && (
-              <div class="mt-4 flex flex-wrap gap-2">
-                {recipe.tags.map((tag) => (
-                  <span class="rounded-full bg-[#eef2eb] px-3 py-1 text-[12px] font-medium text-[#5c735f]">{tag}</span>
-                ))}
-              </div>
-            )}
+            {
+              recipe.tags.length > 0 && (
+                <div class="mt-4 flex flex-wrap gap-2">
+                  {recipe.tags.map((tag) => (
+                    <span class="rounded-full bg-[#eef2eb] px-3 py-1 text-[12px] font-medium text-[#5c735f]">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )
+            }
 
             <div class="mt-6 grid gap-3 sm:grid-cols-3">
               <div class="rounded-[12px] bg-[#f3eee5] px-4 py-4 text-center">
                 <div class="text-[13px] text-[#6b7569]">Preparation</div>
-                <div class="mt-2 text-[20px] font-semibold text-[#314033]">{recipe.prepTime} min</div>
+                <div class="mt-2 text-[20px] font-semibold text-[#314033]">
+                  {recipe.prepTime} min
+                </div>
               </div>
               <div class="rounded-[12px] bg-[#f3eee5] px-4 py-4 text-center">
                 <div class="text-[13px] text-[#6b7569]">Cuisson</div>
-                <div class="mt-2 text-[20px] font-semibold text-[#314033]">{recipe.cookTime} min</div>
+                <div class="mt-2 text-[20px] font-semibold text-[#314033]">
+                  {recipe.cookTime} min
+                </div>
               </div>
               <div class="rounded-[12px] bg-[#f3eee5] px-4 py-4 text-center">
                 <div class="text-[13px] text-[#6b7569]">Calories / part</div>
-                <div class="mt-2 text-[20px] font-semibold text-[#314033]">{recipe.caloriesPerServing} kcal</div>
+                <div class="mt-2 text-[20px] font-semibold text-[#314033]">
+                  {recipe.caloriesPerServing} kcal
+                </div>
               </div>
             </div>
 
             <section class="mt-8">
-              <h2 class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]">Ingredients</h2>
+              <h2
+                class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]"
+              >
+                Ingredients
+              </h2>
 
-              <div class="mt-4 overflow-hidden rounded-[12px] border border-[#e4ddcf] bg-white">
-                <div class="border-b border-[#efe7da] px-5 py-4 text-[15px] font-medium text-[#314033]">
+              <div
+                class="mt-4 overflow-hidden rounded-[12px] border border-[#e4ddcf] bg-white"
+              >
+                <div
+                  class="border-b border-[#efe7da] px-5 py-4 text-[15px] font-medium text-[#314033]"
+                >
                   Pour <span data-servings-label>{recipe.baseServings}</span> parts
                 </div>
 
                 <div class="px-5 py-3">
-                  {recipe.ingredients.map((ingredient) => (
-                    <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-[#f1ebe0] py-3 text-[15px] last:border-b-0">
-                      <div>
-                        <div class="font-medium text-[#314033]">{ingredient.foodName}</div>
-                        {ingredient.notes && <div class="mt-1 text-[13px] text-[#8b9289]">{ingredient.notes}</div>}
+                  {
+                    recipe.ingredients.map((ingredient) => (
+                      <div class="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-b border-[#f1ebe0] py-3 text-[15px] last:border-b-0">
+                        <div>
+                          <div class="font-medium text-[#314033]">
+                            {ingredient.foodName}
+                          </div>
+                          {ingredient.notes && (
+                            <div class="mt-1 text-[13px] text-[#8b9289]">
+                              {ingredient.notes}
+                            </div>
+                          )}
+                        </div>
+                        <div class="text-right text-[#314033]">
+                          <span
+                            data-ingredient-quantity
+                            data-base-quantity={ingredient.quantity}
+                            data-unit={ingredient.unit}
+                          >
+                            {ingredient.quantity}
+                          </span>{" "}
+                          {ingredient.unit}
+                        </div>
                       </div>
-                      <div class="text-right text-[#314033]">
-                        <span
-                          data-ingredient-quantity
-                          data-base-quantity={ingredient.quantity}
-                          data-unit={ingredient.unit}
-                        >
-                          {ingredient.quantity}
-                        </span>{' '}
-                        {ingredient.unit}
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  }
                 </div>
               </div>
             </section>
 
             <section class="mt-8">
-              <h2 class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]">Etapes de preparation</h2>
+              <h2
+                class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]"
+              >
+                Etapes de preparation
+              </h2>
 
               <div class="mt-5 space-y-4">
-                {recipe.steps.map((step, index) => (
-                  <div class="flex gap-4">
-                    <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#5d8765] text-sm font-semibold text-white">
-                      {index + 1}
+                {
+                  recipe.steps.map((step, index) => (
+                    <div class="flex gap-4">
+                      <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#5d8765] text-sm font-semibold text-white">
+                        {index + 1}
+                      </div>
+                      <p class="pt-1 text-[16px] leading-8 text-[#6b7569]">
+                        {step}
+                      </p>
                     </div>
-                    <p class="pt-1 text-[16px] leading-8 text-[#6b7569]">{step}</p>
-                  </div>
-                ))}
+                  ))
+                }
               </div>
             </section>
 
             <section class="mt-10">
-              <h2 class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]">Recettes similaires</h2>
+              <h2
+                class="text-[2rem] font-semibold tracking-[-0.03em] text-[#314033]"
+              >
+                Recettes similaires
+              </h2>
 
-              {recipe.similarRecipes.length > 0 ? (
-                <div class="mt-5 grid gap-4 lg:grid-cols-3">
-                  {recipe.similarRecipes.map((item) => (
-                    <RecipeCard {...item} href={`/recettes/${item.slug}`} />
-                  ))}
-                </div>
-              ) : (
-                <article class="mt-5 rounded-[22px] border border-[#e6dfd3] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
-                  <h3 class="text-[19px] font-medium tracking-[-0.02em] text-[#314033]">Pas encore de suggestions</h3>
-                  <p class="mt-2 text-[14px] leading-6 text-[#6b7569]">
-                    Ajoutez davantage de recettes reliees aux memes regimes ou objectifs pour enrichir cette section.
-                  </p>
-                </article>
-              )}
+              {
+                recipe.similarRecipes.length > 0 ? (
+                  <div class="mt-5 grid gap-4 lg:grid-cols-3">
+                    {recipe.similarRecipes.map((item) => (
+                      <RecipeCard {...item} href={`/recettes/${item.slug}`} />
+                    ))}
+                  </div>
+                ) : (
+                  <article class="mt-5 rounded-[22px] border border-[#e6dfd3] bg-white p-6 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+                    <h3 class="text-[19px] font-medium tracking-[-0.02em] text-[#314033]">
+                      Pas encore de suggestions
+                    </h3>
+                    <p class="mt-2 text-[14px] leading-6 text-[#6b7569]">
+                      Ajoutez davantage de recettes reliees aux memes regimes ou
+                      objectifs pour enrichir cette section.
+                    </p>
+                  </article>
+                )
+              }
             </section>
 
-            {recipe.sponsoredLink && (
-              <section class="mt-10">
-                <article class="rounded-[10px] border border-[#eddac7] bg-[linear-gradient(135deg,rgba(255,247,238,0.98),rgba(255,255,255,0.92))] px-5 py-5">
-                  <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a88a6a]">Sponsorise</p>
-                  <h3 class="mt-3 text-[22px] font-medium tracking-[-0.03em] text-[#314033]">
-                    {recipe.sponsoredLink.title}
-                  </h3>
-                  <p class="mt-2 text-[15px] leading-7 text-[#6b7569]">
-                    {recipe.sponsoredLink.partner_name ? `${recipe.sponsoredLink.partner_name} propose une offre en lien avec cette recette.` : 'Offre active liee a cette recette dans votre base.'}
-                  </p>
-                  <a
-                    class="mt-4 inline-flex text-sm font-semibold text-[#cf7c2f] transition hover:text-[#b86922]"
-                    href={recipe.sponsoredLink.url}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Commander →
-                  </a>
-                </article>
-              </section>
-            )}
+            {
+              recipe.sponsoredLink && (
+                <section class="mt-10">
+                  <article class="rounded-[10px] border border-[#eddac7] bg-[linear-gradient(135deg,rgba(255,247,238,0.98),rgba(255,255,255,0.92))] px-5 py-5">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#a88a6a]">
+                      Sponsorise
+                    </p>
+                    <h3 class="mt-3 text-[22px] font-medium tracking-[-0.03em] text-[#314033]">
+                      {recipe.sponsoredLink.title}
+                    </h3>
+                    <p class="mt-2 text-[15px] leading-7 text-[#6b7569]">
+                      {recipe.sponsoredLink.partner_name
+                        ? `${recipe.sponsoredLink.partner_name} propose une offre en lien avec cette recette.`
+                        : "Offre active liee a cette recette dans votre base."}
+                    </p>
+                    <a
+                      class="mt-4 inline-flex text-sm font-semibold text-[#cf7c2f] transition hover:text-[#b86922]"
+                      href={recipe.sponsoredLink.url}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Commander →
+                    </a>
+                  </article>
+                </section>
+              )
+            }
           </div>
         </div>
-
-        <aside class="h-fit rounded-[14px] border border-[#dce3d5] bg-white p-5 shadow-[0_18px_36px_rgba(76,82,58,0.06)] xl:sticky xl:top-6">
-          <h2 class="text-[20px] font-semibold tracking-[-0.03em] text-[#314033]">Calculateur de portions</h2>
+        <aside
+          class="h-fit rounded-[14px] border border-[#dce3d5] bg-white p-5 shadow-[0_18px_36px_rgba(76,82,58,0.06)] xl:sticky xl:top-6"
+        >
+          <h2
+            class="text-[20px] font-semibold tracking-[-0.03em] text-[#314033]"
+          >
+            Calculateur de portions
+          </h2>
 
           <div class="mt-5 text-[13px] text-[#6b7569]">Nombre de parts</div>
           <div class="mt-3 flex items-center gap-3">
-            <button data-servings-minus class="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[#e1e6db] bg-[#f7f9f4] text-[22px] text-[#556a59]">−</button>
-            <div class="min-w-[92px] rounded-[12px] bg-[#f3f6ef] px-4 py-3 text-center">
-              <div data-servings-value class="text-[34px] font-semibold leading-none text-[#4f7557]">{recipe.baseServings}</div>
+            <button
+              data-servings-minus
+              class="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[#e1e6db] bg-[#f7f9f4] text-[22px] text-[#556a59]"
+              >−</button
+            >
+            <div
+              class="min-w-[92px] rounded-[12px] bg-[#f3f6ef] px-4 py-3 text-center"
+            >
+              <div
+                data-servings-value
+                class="text-[34px] font-semibold leading-none text-[#4f7557]"
+              >
+                {recipe.baseServings}
+              </div>
               <div class="mt-1 text-[12px] text-[#6b7569]">parts</div>
             </div>
-            <button data-servings-plus class="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[#e1e6db] bg-[#f7f9f4] text-[22px] text-[#556a59]">+</button>
+            <button
+              data-servings-plus
+              class="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[#e1e6db] bg-[#f7f9f4] text-[22px] text-[#556a59]"
+              >+</button
+            >
           </div>
 
           <div class="mt-6 border-t border-[#ece7db] pt-5">
-            <div class="text-[13px] text-[#6b7569]">Calories totales pour <span data-servings-inline>{recipe.baseServings}</span> parts</div>
-            <div data-total-calories class="mt-2 text-[28px] font-semibold text-[#314033]">{recipe.totalCalories} kcal</div>
+            <div class="text-[13px] text-[#6b7569]">
+              Calories totales pour <span data-servings-inline
+                >{recipe.baseServings}</span
+              > parts
+            </div>
+            <div
+              data-total-calories
+              class="mt-2 text-[28px] font-semibold text-[#314033]"
+            >
+              {recipe.totalCalories} kcal
+            </div>
           </div>
 
           <div class="mt-6 border-t border-[#ece7db] pt-5">
             <div class="text-[13px] text-[#6b7569]">Quantites recalculees</div>
             <div class="mt-3 space-y-3 rounded-[12px] bg-[#f6f8f3] p-4">
-              {recipe.ingredients.map((ingredient) => (
-                <div class="flex items-center justify-between gap-3 text-[14px]">
-                  <span class="text-[#6b7569]">{ingredient.foodName}</span>
-                  <span class="font-medium text-[#314033]">
-                    <span data-sidebar-quantity data-base-quantity={ingredient.quantity}>{ingredient.quantity}</span> {ingredient.unit}
-                  </span>
-                </div>
-              ))}
+              {
+                recipe.ingredients.map((ingredient) => (
+                  <div class="flex items-center justify-between gap-3 text-[14px]">
+                    <span class="text-[#6b7569]">{ingredient.foodName}</span>
+                    <span class="font-medium text-[#314033]">
+                      <span
+                        data-sidebar-quantity
+                        data-base-quantity={ingredient.quantity}
+                      >
+                        {ingredient.quantity}
+                      </span>{" "}
+                      {ingredient.unit}
+                    </span>
+                  </div>
+                ))
+              }
             </div>
           </div>
 
           <div class="mt-6 border-t border-[#ece7db] pt-5">
-            <div class="text-[13px] text-[#6b7569]">Valeurs nutritionnelles par part</div>
+            <div class="text-[13px] text-[#6b7569]">
+              Valeurs nutritionnelles par part
+            </div>
             <div class="mt-4 grid gap-3">
               <div class="rounded-[12px] bg-[#f3f6ef] px-4 py-3">
                 <div class="text-[12px] text-[#6b7569]">Calories</div>
-                <div class="mt-1 text-[20px] font-semibold text-[#4f7557]">{recipe.caloriesPerServing} kcal</div>
+                <div class="mt-1 text-[20px] font-semibold text-[#4f7557]">
+                  {recipe.caloriesPerServing} kcal
+                </div>
               </div>
               <div class="rounded-[12px] bg-[#f3f6ef] px-4 py-3">
                 <div class="text-[12px] text-[#6b7569]">Proteines</div>
-                <div class="mt-1 text-[20px] font-semibold text-[#314033]">{recipe.proteinPerServing} g</div>
+                <div class="mt-1 text-[20px] font-semibold text-[#314033]">
+                  {recipe.proteinPerServing} g
+                </div>
               </div>
               <div class="rounded-[12px] bg-[#f3f6ef] px-4 py-3">
                 <div class="text-[12px] text-[#6b7569]">Glucides</div>
-                <div class="mt-1 text-[20px] font-semibold text-[#314033]">{recipe.carbsPerServing} g</div>
+                <div class="mt-1 text-[20px] font-semibold text-[#314033]">
+                  {recipe.carbsPerServing} g
+                </div>
               </div>
               <div class="rounded-[12px] bg-[#f3f6ef] px-4 py-3">
                 <div class="text-[12px] text-[#6b7569]">Lipides</div>
-                <div class="mt-1 text-[20px] font-semibold text-[#314033]">{recipe.fatPerServing} g</div>
+                <div class="mt-1 text-[20px] font-semibold text-[#314033]">
+                  {recipe.fatPerServing} g
+                </div>
               </div>
             </div>
           </div>
@@ -232,17 +347,29 @@ if (!recipe) {
   />
 
   <script is:inline>
-    const calculatorNode = document.querySelector('[data-recipe-calculator]');
-    const minusButton = document.querySelector('[data-servings-minus]');
-    const plusButton = document.querySelector('[data-servings-plus]');
-    const servingsValue = document.querySelector('[data-servings-value]');
-    const servingsInline = document.querySelector('[data-servings-inline]');
-    const servingsLabel = document.querySelector('[data-servings-label]');
-    const totalCalories = document.querySelector('[data-total-calories]');
-    const ingredientQuantities = Array.from(document.querySelectorAll('[data-ingredient-quantity]'));
-    const sidebarQuantities = Array.from(document.querySelectorAll('[data-sidebar-quantity]'));
+    const calculatorNode = document.querySelector("[data-recipe-calculator]");
+    const minusButton = document.querySelector("[data-servings-minus]");
+    const plusButton = document.querySelector("[data-servings-plus]");
+    const servingsValue = document.querySelector("[data-servings-value]");
+    const servingsInline = document.querySelector("[data-servings-inline]");
+    const servingsLabel = document.querySelector("[data-servings-label]");
+    const totalCalories = document.querySelector("[data-total-calories]");
+    const ingredientQuantities = Array.from(
+      document.querySelectorAll("[data-ingredient-quantity]"),
+    );
+    const sidebarQuantities = Array.from(
+      document.querySelectorAll("[data-sidebar-quantity]"),
+    );
 
-    if (calculatorNode && minusButton && plusButton && servingsValue && servingsInline && servingsLabel && totalCalories) {
+    if (
+      calculatorNode &&
+      minusButton &&
+      plusButton &&
+      servingsValue &&
+      servingsInline &&
+      servingsLabel &&
+      totalCalories
+    ) {
       const data = JSON.parse(calculatorNode.innerHTML);
       let currentServings = data.baseServings;
 
@@ -269,12 +396,12 @@ if (!recipe) {
         });
       };
 
-      minusButton.addEventListener('click', () => {
+      minusButton.addEventListener("click", () => {
         currentServings = Math.max(1, currentServings - 1);
         render();
       });
 
-      plusButton.addEventListener('click', () => {
+      plusButton.addEventListener("click", () => {
         currentServings += 1;
         render();
       });

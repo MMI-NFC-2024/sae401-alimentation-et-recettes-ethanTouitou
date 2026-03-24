@@ -587,7 +587,7 @@ function getFoodsByName(): DbFood[] {
 
 function getRecipes(): DbRecipe[] {
   if (useRemotePocketBase) {
-    return fetchRemoteCollection<DbRecipe>('recipes', '+title');
+    return fetchRemoteCollection<DbRecipe>('recipes', 'title');
   }
 
   return runQuery<DbRecipe>(
@@ -597,7 +597,7 @@ function getRecipes(): DbRecipe[] {
 
 function getRecipeIngredients(): DbRecipeIngredient[] {
   if (useRemotePocketBase) {
-    return fetchRemoteCollection<DbRecipeIngredient>('recipe_ingredients', '+created');
+    return fetchRemoteCollection<DbRecipeIngredient>('recipe_ingredients', 'created');
   }
 
   return runQuery<DbRecipeIngredient>(
