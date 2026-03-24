@@ -1,4 +1,4 @@
-export const PB_URL = 'http://127.0.0.1:8090';
+export const PB_URL = 'https://nutriguide.ethantouitou.fr';
 export const AUTH_STORAGE_KEY = 'nutriguide_auth';
 
 export type StoredAuth = {
