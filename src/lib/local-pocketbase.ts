@@ -280,8 +280,16 @@ function resolveProjectRoot() {
 }
 
 const projectRoot = resolveProjectRoot();
-const remotePbUrl = (process.env.PB_URL || process.env.PUBLIC_PB_URL || '').replace(/\/$/, '');
+const remotePbUrl = (
+  import.meta.env.PB_URL ||
+  import.meta.env.PUBLIC_PB_URL ||
+  ''
+).replace(/\/$/, '');
+
 const useRemotePocketBase = Boolean(remotePbUrl);
+
+console.log('remotePbUrl =', remotePbUrl);
+console.log('useRemotePocketBase =', useRemotePocketBase);
 const dbSourcePath = path.join(projectRoot, 'backend', 'pb_data', 'data.db');
 const dbSourceWalPath = `${dbSourcePath}-wal`;
 const dbSourceShmPath = `${dbSourcePath}-shm`;
