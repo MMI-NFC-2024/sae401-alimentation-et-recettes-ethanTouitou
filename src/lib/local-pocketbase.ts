@@ -280,6 +280,8 @@ function resolveProjectRoot() {
 }
 
 const projectRoot = resolveProjectRoot();
+const remotePbUrl = (process.env.PB_URL || process.env.PUBLIC_PB_URL || '').replace(/\/$/, '');
+const useRemotePocketBase = Boolean(remotePbUrl);
 const dbSourcePath = path.join(projectRoot, 'backend', 'pb_data', 'data.db');
 const dbSourceWalPath = `${dbSourcePath}-wal`;
 const dbSourceShmPath = `${dbSourcePath}-shm`;
@@ -330,6 +332,29 @@ function getQueryableDbPath() {
   });
 
   return dbSnapshotPath;
+}
+
+function fetchRemoteCollection<T>(collectionName: string, sort?: string): T[] {
+  if (!useRemotePocketBase) {
+    return [];
+  }
+
+  try {
+    const url = new URL(`${remotePbUrl}/api/collections/${collectionName}/records`);
+    url.searchParams.set('perPage', '500');
+    if (sort) {
+      url.searchParams.set('sort', sort);
+    }
+
+    const result = execFileSync('curl', ['-fsSL', url.toString()], {
+      encoding: 'utf8',
+    }).trim();
+    const payload = result ? JSON.parse(result) : null;
+
+    return Array.isArray(payload?.items) ? (payload.items as T[]) : [];
+  } catch {
+    return [];
+  }
 }
 
 function runQuery<T>(sql: string): T[] {
@@ -467,6 +492,109 @@ function toDataUrl(recordId: string, filename: string): string | null {
 
   const buffer = readFileSync(filePath);
   return `data:${imageMimeType(filename)};base64,${buffer.toString('base64')}`;
+}
+
+function resolveImageUrl(collectionName: string, recordId: string, filename: string): string | null {
+  if (!recordId || !filename) {
+    return null;
+  }
+
+  if (useRemotePocketBase) {
+    return `${remotePbUrl}/api/files/${collectionName}/${recordId}/${encodeURIComponent(filename)}`;
+  }
+
+  return toDataUrl(recordId, filename);
+}
+
+function sortByName<T extends { name: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+}
+
+function getDietTypes(): DbDietType[] {
+  if (useRemotePocketBase) {
+    return sortByName(fetchRemoteCollection<DbDietType>('diet_types').filter((item) => Number(item.is_active ?? 1) === 1));
+  }
+
+  return runQuery<DbDietType>(
+    'select id, name, slug, description, icon, is_active from diet_types where is_active = 1 order by rowid asc',
+  );
+}
+
+function getNutritionGoals(): DbNutritionGoal[] {
+  if (useRemotePocketBase) {
+    return sortByName(
+      fetchRemoteCollection<DbNutritionGoal>('nutrition_goals').filter((item) => Number(item.is_active ?? 1) === 1),
+    );
+  }
+
+  return runQuery<DbNutritionGoal>(
+    'select id, name, slug, description, is_active from nutrition_goals where is_active = 1 order by rowid asc',
+  );
+}
+
+function getArticles(): DbArticle[] {
+  if (useRemotePocketBase) {
+    return fetchRemoteCollection<DbArticle>('articles', '-created').filter((item) => Number(item.is_published ?? 1) === 1);
+  }
+
+  return runQuery<DbArticle>(
+    'select id, title, slug, excerpt, content, image, is_published from articles order by rowid desc',
+  );
+}
+
+function getSponsoredLinks(): DbSponsoredLink[] {
+  if (useRemotePocketBase) {
+    return fetchRemoteCollection<DbSponsoredLink>('sponsored_links', '-created').filter((item) => Number(item.is_active ?? 1) === 1);
+  }
+
+  return runQuery<DbSponsoredLink>('select * from sponsored_links where is_active = 1 order by rowid desc');
+}
+
+function getFoods(): DbFood[] {
+  if (useRemotePocketBase) {
+    return [...fetchRemoteCollection<DbFood>('foods')].sort((a, b) => {
+      const proteinDiff = Number(b.protein_per_100g || 0) - Number(a.protein_per_100g || 0);
+      if (proteinDiff !== 0) {
+        return proteinDiff;
+      }
+
+      return a.name.localeCompare(b.name, 'fr');
+    });
+  }
+
+  return runQuery<DbFood>(
+    'select id, name, slug, short_description, description, image, calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g, fiber_per_100g, sodium_per_100g, diet_types, nutrition_goals from foods order by protein_per_100g desc, name asc',
+  );
+}
+
+function getFoodsByName(): DbFood[] {
+  if (useRemotePocketBase) {
+    return sortByName(fetchRemoteCollection<DbFood>('foods'));
+  }
+
+  return runQuery<DbFood>(
+    'select id, name, slug, short_description, description, image, calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g, fiber_per_100g, sodium_per_100g, diet_types, nutrition_goals from foods order by name asc',
+  );
+}
+
+function getRecipes(): DbRecipe[] {
+  if (useRemotePocketBase) {
+    return fetchRemoteCollection<DbRecipe>('recipes', '+title');
+  }
+
+  return runQuery<DbRecipe>(
+    'select id, title, slug, excerpt, content, image, base_servings, calories_per_serving, protein_per_serving, carbs_per_serving, fat_per_serving, prep_time, cook_time, diet_types, nutrition_goals from recipes order by rowid asc',
+  );
+}
+
+function getRecipeIngredients(): DbRecipeIngredient[] {
+  if (useRemotePocketBase) {
+    return fetchRemoteCollection<DbRecipeIngredient>('recipe_ingredients', '+created');
+  }
+
+  return runQuery<DbRecipeIngredient>(
+    'select id, recipe, food, quantity, unit, notes from recipe_ingredients order by rowid asc',
+  );
 }
 
 function buildFoodTags(food: DbFood, dietLabelMap: Map<string, string>, goalLabelMap: Map<string, string>): string[] {
@@ -642,26 +770,17 @@ function buildFoodUsageTips(food: FoodCard): string[] {
 }
 
 export function getHomePageData(): HomePageData {
-  const dietTypes = runQuery<DbDietType>(
-    'select id, name, slug, description, icon, is_active from diet_types where is_active = 1 order by rowid asc',
-  );
-  const nutritionGoals = runQuery<DbNutritionGoal>(
-    'select id, name, slug, description, is_active from nutrition_goals where is_active = 1 order by rowid asc',
-  );
-  const articles = runQuery<DbArticle>(
-    'select id, title, slug, excerpt, content, image, is_published from articles order by rowid desc',
-  );
-  const sponsoredLink =
-    runQuery<DbSponsoredLink>('select * from sponsored_links where is_active = 1 order by rowid desc limit 1')[0] || null;
+  const dietTypes = getDietTypes();
+  const nutritionGoals = getNutritionGoals();
+  const articles = getArticles();
+  const sponsoredLink = getSponsoredLinks()[0] || null;
 
   const dietLabelMap = new Map(dietTypes.map((dietType) => [dietType.id, dietType.name]));
   const goalLabelMap = new Map(nutritionGoals.map((goal) => [goal.id, goal.name]));
   const dietSlugMap = new Map(dietTypes.map((dietType) => [dietType.id, dietType.slug]));
   const goalSlugMap = new Map(nutritionGoals.map((goal) => [goal.id, goal.slug]));
 
-  const rawFoods = runQuery<DbFood>(
-    'select id, name, slug, short_description, description, image, calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g, fiber_per_100g, sodium_per_100g, diet_types, nutrition_goals from foods order by protein_per_100g desc, name asc',
-  );
+  const rawFoods = getFoods();
   const rawFoodMap = new Map(rawFoods.map((food) => [food.id, food]));
 
   const foods = rawFoods.map((food) => {
@@ -673,7 +792,7 @@ export function getHomePageData(): HomePageData {
       name: food.name,
       slug: food.slug,
       summary: food.short_description || food.description || 'Fiche aliment importee depuis PocketBase.',
-      imageUrl: toDataUrl(food.id, food.image),
+      imageUrl: resolveImageUrl('foods', food.id, food.image),
       calories: formatDecimal(food.calories_per_100g),
       protein: formatDecimal(food.protein_per_100g),
       carbs: formatDecimal(food.carbs_per_100g),
@@ -686,9 +805,7 @@ export function getHomePageData(): HomePageData {
     };
   });
 
-  const ingredientRows = runQuery<DbRecipeIngredient>(
-    'select id, recipe, food, quantity, unit, notes from recipe_ingredients order by rowid asc',
-  );
+  const ingredientRows = getRecipeIngredients();
   const ingredientsByRecipeId = new Map<string, DbRecipeIngredient[]>();
 
   for (const row of ingredientRows) {
@@ -697,9 +814,7 @@ export function getHomePageData(): HomePageData {
     ingredientsByRecipeId.set(row.recipe, existingRows);
   }
 
-  const recipes = runQuery<DbRecipe>(
-    'select id, title, slug, excerpt, content, image, base_servings, calories_per_serving, protein_per_serving, carbs_per_serving, fat_per_serving, prep_time, cook_time, diet_types, nutrition_goals from recipes order by rowid asc',
-  ).map((recipe) => {
+  const recipes = getRecipes().map((recipe) => {
     const recipeIngredients = ingredientsByRecipeId.get(recipe.id) || [];
     const derivedTotals = recipeIngredients.reduce(
       (totals, ingredient) => {
@@ -749,7 +864,7 @@ export function getHomePageData(): HomePageData {
       title: recipe.title,
       slug: recipe.slug,
       summary: recipe.excerpt || recipe.content || 'Recette importee depuis PocketBase.',
-      imageUrl: toDataUrl(recipe.id, recipe.image),
+      imageUrl: resolveImageUrl('recipes', recipe.id, recipe.image),
       servings,
       calories: formatDecimal(caloriesPerServing),
       protein: formatDecimal(proteinPerServing),
@@ -857,20 +972,14 @@ export function getFoodsPageData() {
 }
 
 export function getFoodDetailData(foodIdOrSlug: string): FoodDetailData | null {
-  const dietTypes = runQuery<DbDietType>(
-    'select id, name, slug, description, icon, is_active from diet_types where is_active = 1 order by rowid asc',
-  );
-  const nutritionGoals = runQuery<DbNutritionGoal>(
-    'select id, name, slug, description, is_active from nutrition_goals where is_active = 1 order by rowid asc',
-  );
+  const dietTypes = getDietTypes();
+  const nutritionGoals = getNutritionGoals();
   const dietLabelMap = new Map(dietTypes.map((dietType) => [dietType.id, dietType.name]));
   const goalLabelMap = new Map(nutritionGoals.map((goal) => [goal.id, goal.name]));
   const dietSlugMap = new Map(dietTypes.map((dietType) => [dietType.id, dietType.slug]));
   const goalSlugMap = new Map(nutritionGoals.map((goal) => [goal.id, goal.slug]));
 
-  const foods = runQuery<DbFood>(
-    'select id, name, slug, short_description, description, image, calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g, fiber_per_100g, sodium_per_100g, diet_types, nutrition_goals from foods order by name asc',
-  );
+  const foods = getFoodsByName();
   const rawFood = foods.find((item) => item.id === foodIdOrSlug || item.slug === foodIdOrSlug);
 
   if (!rawFood) {
@@ -882,7 +991,7 @@ export function getFoodDetailData(foodIdOrSlug: string): FoodDetailData | null {
     name: rawFood.name,
     slug: rawFood.slug,
     summary: rawFood.short_description || rawFood.description || 'Fiche aliment importee depuis PocketBase.',
-    imageUrl: toDataUrl(rawFood.id, rawFood.image),
+    imageUrl: resolveImageUrl('foods', rawFood.id, rawFood.image),
     calories: formatDecimal(rawFood.calories_per_100g),
     protein: formatDecimal(rawFood.protein_per_100g),
     carbs: formatDecimal(rawFood.carbs_per_100g),
@@ -897,15 +1006,13 @@ export function getFoodDetailData(foodIdOrSlug: string): FoodDetailData | null {
   const dietNames = relationNames(rawFood.diet_types, dietLabelMap);
   const goalNames = relationNames(rawFood.nutrition_goals, goalLabelMap);
   const recipesPageData = getRecipesPageData();
-  const ingredientRows = runQuery<{ recipe: string; food: string }>(
-    `select recipe, food from recipe_ingredients where food = '${rawFood.id}'`,
-  );
+  const ingredientRows = getRecipeIngredients()
+    .filter((row) => row.food === rawFood.id)
+    .map((row) => ({ recipe: row.recipe, food: row.food }));
   const relatedRecipeIds = new Set(ingredientRows.map((row) => row.recipe));
   const relatedRecipes = recipesPageData.recipes.filter((recipe) => relatedRecipeIds.has(recipe.id));
 
-  const sponsoredLinks = runQuery<DbSponsoredLink>(
-    'select * from sponsored_links where is_active = 1 order by rowid desc',
-  );
+  const sponsoredLinks = getSponsoredLinks();
   const sponsoredLink =
     sponsoredLinks.find((item) => parseRelationList(item.foods).includes(rawFood.id)) ||
     sponsoredLinks.find((item) => parseRelationList(item.recipes).some((recipeId) => relatedRecipeIds.has(recipeId))) ||
@@ -959,21 +1066,11 @@ export function getDietDetailData(dietIdOrSlug: string): DietDetailData | null {
 }
 
 export function getRecipeDetailData(recipeIdOrSlug: string): RecipeDetailData | null {
-  const dietTypes = runQuery<DbDietType>(
-    'select id, name, slug, description, icon, is_active from diet_types where is_active = 1 order by rowid asc',
-  );
-  const nutritionGoals = runQuery<DbNutritionGoal>(
-    'select id, name, slug, description, is_active from nutrition_goals where is_active = 1 order by rowid asc',
-  );
-  const recipes = runQuery<DbRecipe>(
-    'select id, title, slug, excerpt, content, image, base_servings, calories_per_serving, protein_per_serving, carbs_per_serving, fat_per_serving, prep_time, cook_time, diet_types, nutrition_goals from recipes order by rowid asc',
-  );
-  const foods = runQuery<DbFood>(
-    'select id, name, slug, short_description, description, image, calories_per_100g, protein_per_100g, carbs_per_100g, fat_per_100g, fiber_per_100g, sodium_per_100g, diet_types, nutrition_goals from foods order by name asc',
-  );
-  const ingredientRows = runQuery<DbRecipeIngredient>(
-    'select id, recipe, food, quantity, unit, notes from recipe_ingredients order by rowid asc',
-  );
+  const dietTypes = getDietTypes();
+  const nutritionGoals = getNutritionGoals();
+  const recipes = getRecipes();
+  const foods = getFoodsByName();
+  const ingredientRows = getRecipeIngredients();
   const recipe = recipes.find((item) => item.id === recipeIdOrSlug || item.slug === recipeIdOrSlug);
 
   if (!recipe) {
@@ -1029,9 +1126,7 @@ export function getRecipeDetailData(recipeIdOrSlug: string): RecipeDetailData | 
 
     return sharedDiet || sharedGoal;
   }).slice(0, 3);
-  const sponsoredLinks = runQuery<DbSponsoredLink>(
-    'select * from sponsored_links where is_active = 1 order by rowid desc',
-  );
+  const sponsoredLinks = getSponsoredLinks();
   const sponsoredLink =
     sponsoredLinks.find((item) => parseRelationList(item.recipes).includes(recipe.id)) ||
     sponsoredLinks.find((item) => parseRelationList(item.foods).some((foodId) => ingredients.some((ingredient) => ingredient.foodId === foodId))) ||
@@ -1043,7 +1138,7 @@ export function getRecipeDetailData(recipeIdOrSlug: string): RecipeDetailData | 
     slug: recipe.slug,
     summary: recipe.excerpt || 'Recette importee depuis PocketBase.',
     description: buildRecipeDescription(recipe, relationNames(recipe.diet_types, dietLabelMap), relationNames(recipe.nutrition_goals, goalLabelMap)),
-    imageUrl: toDataUrl(recipe.id, recipe.image),
+    imageUrl: resolveImageUrl('recipes', recipe.id, recipe.image),
     baseServings,
     prepTime,
     cookTime,

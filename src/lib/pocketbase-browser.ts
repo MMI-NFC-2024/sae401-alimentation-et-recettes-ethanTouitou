@@ -1,5 +1,20 @@
-export const PB_URL = 'https://nutriguide.ethantouitou.fr';
 export const AUTH_STORAGE_KEY = 'nutriguide_auth';
+
+function resolvePocketBaseUrl() {
+  const publicUrl = typeof import.meta !== 'undefined' ? import.meta.env.PUBLIC_PB_URL : '';
+
+  if (publicUrl) {
+    return String(publicUrl).replace(/\/$/, '');
+  }
+
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return window.location.origin.replace(/\/$/, '');
+  }
+
+  return 'http://127.0.0.1:8090';
+}
+
+export const PB_URL = resolvePocketBaseUrl();
 
 export type StoredAuth = {
   token: string;
