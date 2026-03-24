@@ -1,0 +1,110 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+  title="NutriGuide | Connexion admin"
+  description="Connectez-vous au backoffice NutriGuide pour gerer les contenus."
+>
+  <main class="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 sm:py-14">
+    <section class="mx-auto max-w-[720px]">
+      <div class="rounded-[28px] border border-[#e4ddcf] bg-white p-8 shadow-[0_18px_36px_rgba(76,82,58,0.06)]">
+        <p class="text-sm font-semibold uppercase tracking-[0.16em] text-[#7d8478]">
+          Backoffice
+        </p>
+        <h1 class="mt-4 text-[2.7rem] font-semibold tracking-[-0.04em] text-[#314033]">
+          Connexion administrateur
+        </h1>
+        <p class="mt-4 max-w-[560px] text-[16px] leading-8 text-[#6b7569]">
+          Connectez-vous avec votre compte superuser PocketBase pour ajouter des aliments et des recettes depuis le site.
+        </p>
+
+        <div id="admin-auth-status" class="mt-5 hidden rounded-[12px] border px-4 py-3 text-sm"></div>
+
+        <form id="admin-login-form" class="mt-8 space-y-5">
+          <label class="block space-y-2">
+            <span class="text-sm font-medium text-[#314033]">Email admin</span>
+            <input
+              type="email"
+              name="email"
+              required
+              class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]"
+              placeholder="admin@example.com"
+            />
+          </label>
+
+          <label class="block space-y-2">
+            <span class="text-sm font-medium text-[#314033]">Mot de passe</span>
+            <input
+              type="password"
+              name="password"
+              required
+              class="w-full rounded-[12px] border border-[#d8ddcf] bg-[#fcfcfa] px-4 py-3 text-sm outline-none transition focus:border-[#8aac90]"
+              placeholder="********"
+            />
+          </label>
+
+          <button class="w-full rounded-[12px] bg-[#314033] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#263327]">
+            Ouvrir le backoffice
+          </button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    import {
+      PB_URL,
+      getStoredAdminAuth,
+      isSuperuserModel,
+      parsePocketBaseError,
+      saveStoredAdminAuth,
+    } from '../../lib/pocketbase-browser';
+
+    const form = document.querySelector('#admin-login-form');
+    const statusNode = document.querySelector('#admin-auth-status');
+
+    const showStatus = (message, tone = 'success') => {
+      if (!statusNode) return;
+      statusNode.textContent = message;
+      statusNode.className = `mt-5 rounded-[12px] border px-4 py-3 text-sm ${tone === 'error' ? 'border-[#e4b6b1] bg-[#fff4f3] text-[#8a4b43]' : 'border-[#d2dfcd] bg-[#f5faf3] text-[#4f7557]'}`;
+      statusNode.classList.remove('hidden');
+    };
+
+    const existingAdminAuth = getStoredAdminAuth();
+
+    if (existingAdminAuth?.token && isSuperuserModel(existingAdminAuth.model)) {
+      window.location.href = '/admin';
+    }
+
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(form);
+
+      try {
+        const response = await fetch(`${PB_URL}/api/collections/_superusers/auth-with-password`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            identity: formData.get('email'),
+            password: formData.get('password'),
+          }),
+        });
+        const payload = await response.json();
+
+        if (!response.ok) {
+          throw new Error(parsePocketBaseError(payload));
+        }
+
+        saveStoredAdminAuth({ token: payload.token, model: payload.record });
+        showStatus('Connexion admin reussie, redirection vers le backoffice...');
+
+        window.setTimeout(() => {
+          window.location.href = '/admin';
+        }, 400);
+      } catch (error) {
+        showStatus(error instanceof Error ? error.message : 'Connexion admin impossible.', 'error');
+      }
+    });
+  </script>
+</Layout>

@@ -1,18 +1,25 @@
 ---
 import RecipeCard from '../../../components/RecipeCard.astro';
 import Layout from '../../../layouts/Layout.astro';
-import { getHomePageData, getRecipesPageData } from '../../../lib/local-pocketbase';
+import { getHomePageData, getNutritionGoalsBrowseData, getRecipesPageData } from '../../../lib/local-pocketbase';
 
 export function getStaticPaths() {
   const data = getHomePageData();
 
   return data.nutritionGoals.map((goal) => ({
     params: { slug: goal.slug },
-    props: { goal },
   }));
 }
 
-const { goal } = Astro.props;
+const { slug } = Astro.params;
+const goal = slug
+  ? getNutritionGoalsBrowseData().find((item) => item.slug === slug) || null
+  : null;
+
+if (!goal) {
+  throw new Error(`Goal not found for ${slug}`);
+}
+
 const pageData = getRecipesPageData({ selectedGoalSlug: goal.slug });
 ---
 

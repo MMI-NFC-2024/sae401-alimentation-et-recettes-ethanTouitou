@@ -285,11 +285,15 @@ const remotePbUrl = (
   import.meta.env.PUBLIC_PB_URL ||
   ''
 ).replace(/\/$/, '');
-
 const useRemotePocketBase = Boolean(remotePbUrl);
-
-console.log('remotePbUrl =', remotePbUrl);
-console.log('useRemotePocketBase =', useRemotePocketBase);
+const remotePbAdminEmail =
+  import.meta.env.PB_ADMIN_EMAIL ||
+  import.meta.env.POCKETBASE_ADMIN_EMAIL ||
+  '';
+const remotePbAdminPassword =
+  import.meta.env.PB_ADMIN_PASSWORD ||
+  import.meta.env.POCKETBASE_ADMIN_PASSWORD ||
+  '';
 const dbSourcePath = path.join(projectRoot, 'backend', 'pb_data', 'data.db');
 const dbSourceWalPath = `${dbSourcePath}-wal`;
 const dbSourceShmPath = `${dbSourcePath}-shm`;
@@ -305,6 +309,7 @@ const pieceWeights = new Map([
 let dbSnapshotPath: string | null = null;
 let dbSnapshotWalPath: string | null = null;
 let dbSnapshotShmPath: string | null = null;
+let remoteSuperuserToken: string | null | undefined = undefined;
 
 function getQueryableDbPath() {
   if (dbSnapshotPath && existsSync(dbSnapshotPath)) {
@@ -354,7 +359,16 @@ function fetchRemoteCollection<T>(collectionName: string, sort?: string): T[] {
       url.searchParams.set('sort', sort);
     }
 
-    const result = execFileSync('curl', ['-fsSL', url.toString()], {
+    const curlArgs = ['-fsSL'];
+    const authToken = getRemoteSuperuserToken();
+
+    if (authToken) {
+      curlArgs.push('-H', `Authorization: ${authToken}`);
+    }
+
+    curlArgs.push(url.toString());
+
+    const result = execFileSync('curl', curlArgs, {
       encoding: 'utf8',
     }).trim();
     const payload = result ? JSON.parse(result) : null;
@@ -363,6 +377,50 @@ function fetchRemoteCollection<T>(collectionName: string, sort?: string): T[] {
   } catch {
     return [];
   }
+}
+
+function getRemoteSuperuserToken(): string | null {
+  if (!useRemotePocketBase) {
+    return null;
+  }
+
+  if (remoteSuperuserToken !== undefined) {
+    return remoteSuperuserToken;
+  }
+
+  if (!remotePbAdminEmail || !remotePbAdminPassword) {
+    remoteSuperuserToken = null;
+    return remoteSuperuserToken;
+  }
+
+  try {
+    const response = execFileSync(
+      'curl',
+      [
+        '-fsSL',
+        '-X',
+        'POST',
+        '-H',
+        'Content-Type: application/json',
+        '-d',
+        JSON.stringify({
+          identity: remotePbAdminEmail,
+          password: remotePbAdminPassword,
+        }),
+        `${remotePbUrl}/api/collections/_superusers/auth-with-password`,
+      ],
+      {
+        encoding: 'utf8',
+      },
+    ).trim();
+    const payload = response ? JSON.parse(response) : null;
+
+    remoteSuperuserToken = payload?.token || null;
+  } catch {
+    remoteSuperuserToken = null;
+  }
+
+  return remoteSuperuserToken;
 }
 
 function runQuery<T>(sql: string): T[] {

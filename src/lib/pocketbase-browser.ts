@@ -1,4 +1,5 @@
 export const AUTH_STORAGE_KEY = 'nutriguide_auth';
+export const ADMIN_AUTH_STORAGE_KEY = 'nutriguide_admin_auth';
 
 function resolvePocketBaseUrl() {
   const publicUrl = typeof import.meta !== 'undefined' ? import.meta.env.PUBLIC_PB_URL : '';
@@ -21,12 +22,12 @@ export type StoredAuth = {
   model: Record<string, any>;
 };
 
-export function getStoredAuth(): StoredAuth | null {
+function readStoredAuth(storageKey: string): StoredAuth | null {
   if (typeof localStorage === 'undefined') {
     return null;
   }
 
-  const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+  const raw = localStorage.getItem(storageKey);
 
   if (!raw) {
     return null;
@@ -39,12 +40,44 @@ export function getStoredAuth(): StoredAuth | null {
   }
 }
 
+function writeStoredAuth(storageKey: string, auth: StoredAuth) {
+  localStorage.setItem(storageKey, JSON.stringify(auth));
+}
+
+function removeStoredAuth(storageKey: string) {
+  localStorage.removeItem(storageKey);
+}
+
+export function getStoredAuth(): StoredAuth | null {
+  return readStoredAuth(AUTH_STORAGE_KEY);
+}
+
 export function saveStoredAuth(auth: StoredAuth) {
-  localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(auth));
+  writeStoredAuth(AUTH_STORAGE_KEY, auth);
 }
 
 export function clearStoredAuth() {
-  localStorage.removeItem(AUTH_STORAGE_KEY);
+  removeStoredAuth(AUTH_STORAGE_KEY);
+}
+
+export function getStoredAdminAuth(): StoredAuth | null {
+  return readStoredAuth(ADMIN_AUTH_STORAGE_KEY);
+}
+
+export function saveStoredAdminAuth(auth: StoredAuth) {
+  writeStoredAuth(ADMIN_AUTH_STORAGE_KEY, auth);
+}
+
+export function clearStoredAdminAuth() {
+  removeStoredAuth(ADMIN_AUTH_STORAGE_KEY);
+}
+
+export function isSuperuserModel(model?: Record<string, any> | null) {
+  if (!model) {
+    return false;
+  }
+
+  return model.collectionName === '_superusers' || model.collectionId === 'pbc_3142635823';
 }
 
 export function getUserDisplayName(model?: Record<string, any> | null) {

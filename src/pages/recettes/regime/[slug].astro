@@ -1,18 +1,23 @@
 ---
 import RecipeCard from '../../../components/RecipeCard.astro';
 import Layout from '../../../layouts/Layout.astro';
-import { getHomePageData, getRecipesPageData } from '../../../lib/local-pocketbase';
+import { getDietDetailData, getHomePageData, getRecipesPageData } from '../../../lib/local-pocketbase';
 
 export function getStaticPaths() {
   const data = getHomePageData();
 
   return data.dietTypes.map((dietType) => ({
     params: { slug: dietType.slug },
-    props: { dietType },
   }));
 }
 
-const { dietType } = Astro.props;
+const { slug } = Astro.params;
+const dietType = slug ? getDietDetailData(slug) : null;
+
+if (!dietType) {
+  throw new Error(`Diet not found for ${slug}`);
+}
+
 const pageData = getRecipesPageData({ selectedDietSlug: dietType.slug });
 ---
 
